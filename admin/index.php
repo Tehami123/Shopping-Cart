@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Admin Dashboard - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -50,7 +50,7 @@ $adminNav = [
                 <div class="quick-links-grid">
                     <?php foreach(array_slice($adminNav, 1, 6) as $url => $label): ?>
                         <a href="<?= $url ?>" class="quick-link-card">
-                            <span class="icon">📁</span>
+                            <span class="icon">&#128193;</span>
                             <span><?= $label ?></span>
                         </a>
                     <?php endforeach; ?>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Employee Dashboard - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -42,3 +42,4 @@ $employeeNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

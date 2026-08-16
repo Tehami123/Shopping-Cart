@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Manage Returns - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -22,27 +22,28 @@ $adminNav = [
                     <?php foreach ($adminNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Manage Returns</h1>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Return ID</th><th style="padding:12px;">Order #</th><th style="padding:12px;">Customer</th><th style="padding:12px;">Product</th><th style="padding:12px;">Type</th><th style="padding:12px;">Reason</th><th style="padding:12px;">Date</th><th style="padding:12px;">Status</th><th style="padding:12px;">Actions</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Return ID</th><th>Order #</th><th>Customer</th><th>Product</th><th>Type</th><th>Reason</th><th>Date</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">RET-001</td>
-                                <td style="padding:12px;">11200345001</td>
-                                <td style="padding:12px;">Jane Doe</td>
-                                <td style="padding:12px;">Lavender Dream Journal</td>
-                                <td style="padding:12px;">Refund</td>
-                                <td style="padding:12px;">Defective</td>
-                                <td style="padding:12px;">16 Aug 2026</td>
-                                <td style="padding:12px;"><span class="status-badge payment-pending">Pending</span></td>
-                                <td style="padding:12px; display:flex; gap:8px;">
+                            <tr>
+                                <td>RET-001</td>
+                                <td>11200345001</td>
+                                <td>Jane Doe</td>
+                                <td>Lavender Dream Journal</td>
+                                <td>Refund</td>
+                                <td>Defective</td>
+                                <td>16 Aug 2026</td>
+                                <td><span class="status-badge payment-pending">Pending</span></td>
+                                <td class="admin-actions-cell">
                                     <button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Approved')">Approve</button>
                                     <button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Rejected')">Reject</button>
                                     <button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Completed')">Complete</button>
@@ -56,3 +57,4 @@ $adminNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

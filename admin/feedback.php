@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Feedback - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -22,23 +22,24 @@ $adminNav = [
                     <?php foreach ($adminNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Customer Feedback</h1>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Customer</th><th style="padding:12px;">Date</th><th style="padding:12px; width:50%;">Feedback</th><th style="padding:12px;">Status</th><th style="padding:12px;">Action</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Customer</th><th>Date</th><th class="col-wide">Feedback</th><th>Status</th><th>Action</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">Jane Doe</td>
-                                <td style="padding:12px;">10 Aug 2026</td>
-                                <td style="padding:12px;">I loved the journals, but the delivery was a bit late.</td>
-                                <td style="padding:12px;"><span class="status-badge payment-pending">New</span></td>
-                                <td style="padding:12px;"><button class="text-button" onclick="alert('Marked as Reviewed')">Mark Reviewed</button></td>
+                            <tr>
+                                <td>Jane Doe</td>
+                                <td>10 Aug 2026</td>
+                                <td>I loved the journals, but the delivery was a bit late.</td>
+                                <td><span class="status-badge payment-pending">New</span></td>
+                                <td><button class="text-button" onclick="alert('Marked as Reviewed')">Mark Reviewed</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -48,3 +49,4 @@ $adminNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

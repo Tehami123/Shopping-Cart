@@ -1,7 +1,13 @@
 <?php $basePath = '/Shopping%20Cart'; ?>
 <header class="topbar">
     <div class="container nav-container">
-        <a href="<?= $basePath ?>/index.php" class="brand" aria-label="Arts home">Arts</a>
+       <a href="<?= $basePath ?>/index.php" class="site-logo">
+    <img 
+        src="<?= $basePath ?>/assets/images/logo/logo.jpg"
+        alt="Arts"
+        class="site-logo-image"
+    >
+</a>
 
         <div class="search-box" role="search">
             <span class="search-icon">⌕</span>

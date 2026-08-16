@@ -5,19 +5,47 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 require_once __DIR__ . '/includes/product-card.php';
 
-// NOTE: category list expanded to match the real Arts catalog per project brief.
-// 'icon' is an emoji placeholder (consistent with the existing benefits icons).
-// 'image' is left wired up to an svg path so a real product photo can be dropped
-// in later without touching this markup — see comment further down.
 $categories = [
-    ['title' => 'Stationery',      'subtitle' => 'Notebooks & writing tools', 'icon' => '✎', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['title' => 'Gift Articles',   'subtitle' => 'Little curated luxuries',   'icon' => '🎁', 'image' => $basePath . '/assets/images/gifts.svg'],
-    ['title' => 'Greeting Cards',  'subtitle' => 'A message, beautifully framed', 'icon' => '✉', 'image' => $basePath . '/assets/images/cards.svg'],
-    ['title' => 'Dolls & Toys',    'subtitle' => 'Playful pieces, joyful moments', 'icon' => '🪆', 'image' => $basePath . '/assets/images/toys.svg'],
-    ['title' => 'Files & Folders', 'subtitle' => 'Keep everything in order',  'icon' => '🗂', 'image' => ''],
-    ['title' => 'Handbags',        'subtitle' => 'Everyday carry, elevated',  'icon' => '👜', 'image' => ''],
-    ['title' => 'Wallets',         'subtitle' => 'Compact & well made',       'icon' => '👛', 'image' => ''],
-    ['title' => 'Beauty',          'subtitle' => 'Small self-care essentials','icon' => '💄', 'image' => ''],
+    [
+        'title' => 'Stationery',
+        'subtitle' => 'Notebooks & writing tools',
+        'image' => 'pen.png'
+    ],
+    [
+        'title' => 'Gift Articles',
+        'subtitle' => 'Little curated luxuries',
+        'image' => 'gift.jpg'
+    ],
+    [
+        'title' => 'Greeting Cards',
+        'subtitle' => 'A message, beautifully framed',
+        'image' => 'mail.jpg'
+    ],
+    [
+        'title' => 'Dolls & Toys',
+        'subtitle' => 'Playful pieces, joyful moments',
+        'image' => 'toys.jpg'
+    ],
+    [
+        'title' => 'Files & Folders',
+        'subtitle' => 'Keep everything in order',
+        'image' => 'folder.png'
+    ],
+    [
+        'title' => 'Handbags',
+        'subtitle' => 'Everyday carry, elevated',
+        'image' => 'bag.jpg'
+    ],
+    [
+        'title' => 'Wallets',
+        'subtitle' => 'Compact & well made',
+        'image' => 'wallet.jpg'
+    ],
+    [
+        'title' => 'Beauty',
+        'subtitle' => 'Small self-care essentials',
+        'image' => 'lipstick.jpg'
+    ],
 ];
 
 $featuredProducts = [
@@ -84,317 +112,472 @@ $benefits = [
 ?>
 
 <style>
-/*
-  Homepage-only styles. Deliberately kept out of assets/css/style.css and
-  scoped under "home-*" class names so nothing here can touch products.php,
-  product-card.php, header.php or footer.php. Safe to delete this block
-  entirely to revert to the previous homepage look.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Homepage Premium Styling */
+.homepage {
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    background: #fdfcff;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
 .home-hero {
-    background: var(--bg-soft);
-    padding: 52px 0 60px;
+    position: relative;
+    padding: 120px 0 140px;
+    background: linear-gradient(-45deg, #f4ecfd, #fbf9f6, #e6dcf2, #fff0f5);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    overflow: hidden;
+}
+
+.home-hero::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(95,51,168,0.1) 0%, transparent 70%);
+    top: -200px;
+    left: -200px;
+    border-radius: 50%;
+    filter: blur(60px);
+}
+
+.home-hero::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(212,83,89,0.08) 0%, transparent 70%);
+    bottom: -150px;
+    right: -100px;
+    border-radius: 50%;
+    filter: blur(60px);
 }
 
 .home-hero-grid {
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 48px;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 60px;
     align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
-.home-hero-eyebrow {
+.home-hero-copy {
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.home-eyebrow {
     display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-size: 0.72rem;
-    font-weight: 700;
+    padding: 8px 18px;
+    background: rgba(95, 51, 168, 0.06);
     color: var(--brand-primary);
-    margin-bottom: 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(95, 51, 168, 0.1);
 }
 
 .home-hero-copy h1 {
-    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    font-size: clamp(3rem, 5vw, 4.8rem);
     font-weight: 700;
-    font-size: clamp(2.1rem, 4vw, 3.1rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    margin: 0 0 16px;
+    line-height: 1.05;
+    color: #1a1a1a;
+    margin: 0 0 24px;
+    letter-spacing: -0.03em;
 }
 
 .home-hero-copy h1 em {
     font-style: normal;
-    color: var(--brand-primary);
+    background: linear-gradient(135deg, var(--brand-primary), #d45359);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .home-hero-copy p {
-    font-size: 1.05rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.15rem;
     line-height: 1.7;
-    color: var(--text-soft);
-    margin: 0 0 28px;
-    max-width: 440px;
+    color: #555;
+    margin: 0 0 40px;
+    max-width: 480px;
 }
 
 .home-hero-actions {
     display: flex;
+    gap: 16px;
     align-items: center;
-    gap: 14px;
     flex-wrap: wrap;
+    margin-bottom: 32px;
 }
 
-.home-btn-ghost {
+.primary-btn-glow {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: 10px;
-    border: 1.5px solid var(--brand-primary);
-    color: var(--brand-primary);
-    font-weight: 700;
-    background: transparent;
-    transition: background 0.2s ease;
+    justify-content: center;
+    padding: 16px 36px;
+    background: linear-gradient(135deg, var(--brand-primary), #7344be);
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(95, 51, 168, 0.3);
+    border: none;
+    cursor: pointer;
 }
 
-.home-btn-ghost:hover {
-    background: var(--brand-soft);
+.primary-btn-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(95, 51, 168, 0.4);
 }
 
-.home-hero-pills {
+.ghost-btn-sleek {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 36px;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--brand-primary-dark);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+.ghost-btn-sleek:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-3px);
+}
+
+.hero-pills {
     display: flex;
-    gap: 8px;
+    gap: 12px;
+    align-items: center;
     flex-wrap: wrap;
-    margin-top: 22px;
 }
 
-.home-hero-pill {
-    font-size: 0.78rem;
+.hero-pill {
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--brand-primary-dark);
-    background: var(--brand-light);
-    border-radius: 999px;
-    padding: 6px 12px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(5px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
 }
 
 .home-hero-art {
     position: relative;
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
 }
 
-/* Subtle dotted "notebook paper" texture — a nod to the stationery catalog,
-   used sparingly as the one signature visual motif on this page. */
-.home-hero-art::before {
+.glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 40px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.06);
+    animation: float 6s ease-in-out infinite;
+}
+
+.glass-card img {
+    width: 100%;
+    height: auto;
+    max-height: 420px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));
+}
+
+.section-premium {
+    padding: 100px 0;
+    position: relative;
+}
+
+.premium-title {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeInUp 0.8s ease out both;
+}
+
+.premium-title h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+
+.premium-title p {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    color: #666;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.cat-grid-premium {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.cat-card-modern {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 24px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.cat-card-modern::before {
     content: '';
     position: absolute;
-    inset: 18px -18px -18px 18px;
-    background-image: radial-gradient(circle, rgba(95, 51, 168, 0.18) 1.4px, transparent 1.6px);
-    background-size: 14px 14px;
-    border-radius: var(--radius-lg);
-    z-index: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, var(--brand-light), #fff);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
-.home-hero-art-frame {
-    position: relative;
-    z-index: 1;
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    box-shadow: var(--shadow-soft);
+.cat-card-modern:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(95, 51, 168, 0.08);
+    border-color: rgba(95, 51, 168, 0.1);
 }
 
-.home-hero-art-frame img {
-    width: 100%;
-    height: 280px;
-    object-fit: contain;
+.cat-card-modern:hover::before {
+    opacity: 1;
 }
 
-.home-categories {
-    padding-top: 64px;
-}
-
-.home-cat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-}
-
-.home-cat-card {
-    display: block;
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    padding: 22px 16px;
-    text-align: center;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-
-.home-cat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-soft);
-    border-color: rgba(95, 51, 168, 0.28);
-}
-
-.home-cat-icon-wrap {
-    width: 62px;
-    height: 62px;
-    margin: 0 auto 14px;
+.cat-icon-modern {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, var(--brand-light), #fff);
     border-radius: 50%;
-    background: var(--brand-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    font-size: 2.2rem;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.02), 0 5px 15px rgba(95,51,168,0.05);
+    transition: transform 0.4s ease;
 }
 
-/* If a real product photo exists for a category, drop it in as an <img>
-   inside .home-cat-icon-wrap (object-fit: cover already handles it below)
-   and it will automatically replace the emoji placeholder look. */
-.home-cat-icon-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.cat-card-modern:hover .cat-icon-modern {
+    transform: scale(1.15) rotate(5deg);
 }
 
-.home-cat-icon {
-    font-size: 1.6rem;
-}
-
-.home-cat-card h3 {
-    margin: 0 0 4px;
-    font-size: 0.98rem;
+.cat-card-modern h3 {
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text);
+    color: #1a1a1a;
+    margin: 0 0 8px;
 }
 
-.home-cat-card p {
+.cat-card-modern p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #666;
     margin: 0;
-    font-size: 0.8rem;
-    color: var(--text-soft);
 }
 
-.home-featured {
-    padding-top: 64px;
-}
-
-.home-featured .featured-grid {
-    gap: 26px;
-}
-
-.home-promo {
-    padding-top: 64px;
-}
-
-.home-promo-card {
-    position: relative;
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-left: 5px solid var(--brand-primary);
-    border-radius: var(--radius-lg);
+.promo-premium {
+    background: #0f0c29;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius: 36px;
+    padding: 70px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 36px;
+    gap: 70px;
     align-items: center;
-    padding: 40px 44px;
+    position: relative;
     overflow: hidden;
+    color: #fff;
+    margin-top: 40px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.15);
 }
 
-.home-promo-card::after {
+.cat-image-modern {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 18px;
+    margin-bottom: 18px;
+}
+
+.cat-image-modern img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.cat-card-modern:hover .cat-image-modern img {
+    transform: scale(1.04);
+}
+
+.promo-premium::after {
     content: '';
     position: absolute;
-    right: -40px;
-    top: -40px;
-    width: 160px;
-    height: 160px;
-    background-image: radial-gradient(circle, rgba(95, 51, 168, 0.12) 1.4px, transparent 1.6px);
-    background-size: 14px 14px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,126,179,0.2) 0%, transparent 70%);
+    top: -150px;
+    right: -150px;
     border-radius: 50%;
 }
 
-.home-promo-copy h2 {
-    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
-    margin: 0 0 12px;
-    font-size: clamp(1.6rem, 2.6vw, 2.2rem);
-    color: var(--brand-primary-dark);
-    letter-spacing: -0.01em;
-}
-
-.home-promo-copy p {
-    margin: 0 0 22px;
-    color: var(--text-soft);
-    line-height: 1.7;
-}
-
-.home-promo-image {
+.promo-premium-copy {
     position: relative;
-    z-index: 1;
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--brand-soft);
-    height: 220px;
-    display: flex;
+    z-index: 2;
+}
+
+.promo-premium-copy h2 {
+    font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+    font-weight: 700;
+    margin: 0 0 24px;
+    line-height: 1.1;
+    background: linear-gradient(to right, #fff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.promo-premium-copy p {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.7;
+    margin: 0 0 36px;
+}
+
+.btn-accent {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    padding: 18px 40px;
+    background: linear-gradient(135deg, #ff7eb3, #ff758c);
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 25px rgba(255, 117, 140, 0.4);
 }
 
-.home-promo-image img {
-    width: 62%;
-    height: 62%;
-    object-fit: contain;
+.btn-accent:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 117, 140, 0.5);
 }
 
-.home-benefits {
-    padding-top: 56px;
+.promo-premium-image {
+    position: relative;
+    
+    z-index: 2;
+    animation: float 8s ease-in-out infinite;
 }
 
-.home-benefits .benefits-grid {
-    padding: 22px 18px;
-    box-shadow: none;
+.promo-premium-image img {
+    width: 100%;
+    max-width: 550px;
+    border-radius: 18px;
+    filter: drop-shadow(0 40px 50px rgba(0,0,0,0.4));
 }
 
-.home-benefits .benefit-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 1.2rem;
+.benefits-premium {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-top: 80px;
 }
 
-@media (max-width: 980px) {
-    .home-hero-grid {
+.benefit-card-premium {
+    background: #fff;
+    padding: 36px 24px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: transform 0.3s ease;
+}
+
+.benefit-card-premium:hover {
+    transform: translateY(-6px);
+}
+
+.benefit-card-premium .icon {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.benefit-card-premium h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #1a1a1a;
+}
+
+.benefit-card-premium p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #666;
+    margin: 0;
+}
+
+@media (max-width: 992px) {
+    .home-hero-grid, .promo-premium {
         grid-template-columns: 1fr;
     }
-    .home-hero-copy p {
-        max-width: none;
-    }
-    .home-hero-art {
+    .home-hero-art, .promo-premium-image {
         order: -1;
     }
-    .home-cat-grid {
+    .benefits-premium {
         grid-template-columns: repeat(2, 1fr);
     }
-    .home-promo-card {
-        grid-template-columns: 1fr;
-        padding: 28px 24px;
-    }
-    .home-promo-image {
-        height: 180px;
-    }
 }
-
-@media (max-width: 640px) {
-    .home-hero {
-        padding: 36px 0 44px;
+@media (max-width: 576px) {
+    .benefits-premium {
+        grid-template-columns: 1fr;
     }
-    .home-hero-art-frame {
-        padding: 18px;
+    .cat-grid-premium {
+        grid-template-columns: 1fr;
     }
-    .home-hero-art-frame img {
-        height: 200px;
-    }
-    .home-cat-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-    .home-cat-card {
-        padding: 16px 10px;
+    .promo-premium {
+        padding: 50px 24px;
     }
 }
 </style>
@@ -403,87 +586,85 @@ $benefits = [
     <section class="home-hero">
         <div class="container home-hero-grid">
             <div class="home-hero-copy">
-                <span class="home-hero-eyebrow">Stationery · Gifts · Lifestyle</span>
+                <span class="home-eyebrow">Stationery · Gifts · Lifestyle</span>
                 <h1>Everyday things, made a little more <em>thoughtful</em>.</h1>
                 <p>Arts is a small online shop for journals, gift articles, greeting cards and lifestyle finds — curated in small batches and picked to make ordinary days feel a bit more special.</p>
                 <div class="home-hero-actions">
-                    <a href="<?= $basePath ?>/products.php" class="primary-button">Shop Now <span>→</span></a>
-                    <a href="#home-categories" class="home-btn-ghost">Browse Categories</a>
+                    <a href="<?= $basePath ?>/products.php" class="primary-btn-glow">Shop Collection</a>
+                    <a href="#home-categories" class="ghost-btn-sleek">Explore Categories</a>
                 </div>
-                <div class="home-hero-pills">
-                    <span class="home-hero-pill">Free shipping over $50</span>
-                    <span class="home-hero-pill">30-day returns</span>
+                <div class="hero-pills">
+                    <span class="hero-pill">✓ Free shipping over $50</span>
+                    <span class="hero-pill">✓ 30-day returns</span>
                 </div>
             </div>
             <div class="home-hero-art">
-                <div class="home-hero-art-frame">
-                    <img src="<?= $basePath ?>/assets/images/gift-promo.svg" alt="A curated Arts gift arrangement">
+                <div class="glass-card">
+                    <img src="<?= $basePath ?>/assets/images/hero-images/hero1.jpg" alt="Curated Arts arrangement">
+                    <!-- <img src="<?= $basePath ?>/assets/images/hero-images/hero2.jpg" alt="Curated Arts arrangement"> -->
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="home-categories" id="home-categories">
-        <div class="container">
-            <h2 class="section-heading">Shop by Category</h2>
+    <section class="section-premium" id="home-categories">
+    <div class="container">
 
-            <div class="home-cat-grid">
-                <?php foreach ($categories as $category): ?>
-                    <a href="<?= $basePath ?>/products.php" class="home-cat-card">
-                        <div class="home-cat-icon-wrap">
-                            <?php if (!empty($category['image'])): ?>
-                                <img src="<?= htmlspecialchars($category['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($category['title'], ENT_QUOTES, 'UTF-8') ?>">
-                            <?php else: ?>
-                                <span class="home-cat-icon"><?= htmlspecialchars($category['icon'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <h3><?= htmlspecialchars($category['title'], ENT_QUOTES, 'UTF-8') ?></h3>
-                        <p><?= htmlspecialchars($category['subtitle'], ENT_QUOTES, 'UTF-8') ?></p>
-                    </a>
-                <?php endforeach; ?>
-            </div>
+        <div class="premium-title">
+            <h2>Discover Collections</h2>
+            <p>
+                Find exactly what you're looking for, from hand-bound journals
+                to elegant gift wrap.
+            </p>
         </div>
-    </section>
 
-    <section class="home-featured">
-        <div class="container">
-            <div class="section-head-row">
-                <div>
-                    <h2 class="section-heading">Featured Products</h2>
-                    <p class="section-subheading">Our most loved items this season.</p>
-                </div>
-                <a href="<?= $basePath ?>/products.php" class="text-link">View All →</a>
-            </div>
+        <div class="cat-grid-premium">
 
-            <div class="featured-grid">
-                <?php foreach ($featuredProducts as $product): ?>
-                    <?php renderProductCard($product); ?>
-                <?php endforeach; ?>
-            </div>
+            <?php foreach ($categories as $category): ?>
+
+                <a href="<?= $basePath ?>/products.php" class="cat-card-modern">
+
+                    <div class="cat-image-modern">
+                        <img
+                            src="<?= $basePath ?>/assets/images/hero-images/<?= htmlspecialchars($category['image'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($category['title'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                    </div>
+
+                    <h3>
+                        <?= htmlspecialchars($category['title'], ENT_QUOTES, 'UTF-8') ?>
+                    </h3>
+
+                    <p>
+                        <?= htmlspecialchars($category['subtitle'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+
+                </a>
+
+            <?php endforeach; ?>
+
         </div>
-    </section>
 
-    <section class="home-promo">
+    </div>
+</section>
+
+    <section class="section-premium">
         <div class="container">
-            <div class="home-promo-card">
-                <div class="home-promo-copy">
-                    <h2>Find the Perfect Gift</h2>
+            <div class="promo-premium">
+                <div class="promo-premium-copy">
+                    <h2>The Art of Gifting</h2>
                     <p>Whether it's for a special occasion or just because, our curated gift sets are designed to delight — beautifully packaged and ready to give.</p>
-                    <a href="<?= $basePath ?>/products.php" class="primary-button">Explore Gift Guide</a>
+                    <a href="<?= $basePath ?>/products.php" class="btn-accent">Explore Gift Guide</a>
                 </div>
-                <div class="home-promo-image">
-                    <img src="<?= $basePath ?>/assets/images/gift-promo.svg" alt="Gift arrangement">
+                <div class="promo-premium-image">
+                    <img src="<?= $basePath ?>/assets/images/hero-images/hero2.jpg" alt="Premium Gifts">
                 </div>
             </div>
-        </div>
-    </section>
 
-    <section class="home-benefits">
-        <div class="container">
-            <div class="benefits-grid">
+            <div class="benefits-premium">
                 <?php foreach ($benefits as $benefit): ?>
-                    <div class="benefit-item">
-                        <div class="benefit-icon"><?= htmlspecialchars($benefit['icon'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <div class="benefit-card-premium">
+                        <span class="icon"><?= htmlspecialchars($benefit['icon'], ENT_QUOTES, 'UTF-8') ?></span>
                         <h3><?= htmlspecialchars($benefit['title'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <p><?= htmlspecialchars($benefit['text'], ENT_QUOTES, 'UTF-8') ?></p>
                     </div>

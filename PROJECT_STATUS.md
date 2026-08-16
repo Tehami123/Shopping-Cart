@@ -7,116 +7,96 @@ Technology:
 PHP + MySQL + Apache
 
 Current Phase:
-Phase 2 — Frontend/UI Implementation
+Phase 2 — Frontend/UI Implementation **COMPLETE**
 
 Overall Progress:
-25%
+~100% frontend / ~15% total project
 
 Last Updated:
-2026-08-15
+2026-08-16
 
 ---
 
 # COMPLETED
 
-### Phase 1 Blueprint Freeze (Corrected)
+### Phase 1 Blueprint Freeze
 Status: IMPLEMENTED
-- Final requirements checklist corrected to explicit project requirements only
-- Living functionality tracker corrected and preserved as the project source of truth
-- Final database design corrected to minimum required tables only
-- Payment architecture corrected to exclude external payment APIs
-- Order number generation corrected to use database order_id as the 8-digit sequence
-- Guest cart behavior corrected to allow browsing and optional session cart without login
-- Feedback and FAQ restored as required scope
-- Role permissions matrix reviewed and kept simple
-- Final module/page map corrected
-- Implementation dependency order corrected
-- 10-day plan corrected
-- Cut list corrected
-- Top risks corrected
-- Final project blueprint frozen
+- Requirements, architecture, database plan, RBAC, and 10-day plan frozen
+- Files: PROJECT_STATUS.md, TECHNICAL_ARCHITECTURE.md
 
-Files:
-- PROJECT_STATUS.md
-- TECHNICAL_ARCHITECTURE.md
+### Phase 2 — Frontend/UI Implementation
+Status: **COMPLETE (FROZEN — do not redesign)**
 
-Database:
-- Requirements analysis only; no schema implemented yet
+All public, customer, admin, employee, and informational pages are implemented with a consistent design system. No backend functionality is connected yet.
 
-Testing:
-- PASS (requirements-only blueprint phase and correction review)
+**Public pages:**
+- index.php, products.php, product.php, search.php, cart.php, checkout.php
+- faq.php, about.php, contact.php, privacy.php
 
-### Phase 2 Step 1 — Global Layout
-Status: IMPLEMENTED
-- Header created
-- Navbar created
-- Footer created
-- Main stylesheet created
-- Shared layout structure established for the PHP project
+**Auth pages:**
+- auth/login.php, auth/register.php
 
-Files:
-- includes/header.php
-- includes/navbar.php
-- includes/footer.php
+**Customer pages:**
+- customer/index.php, customer/orders.php, customer/account.php, customer/returns.php
+
+**Admin pages:**
+- admin/index.php, admin/products.php, admin/inventory.php, admin/orders.php
+- admin/customers.php, admin/employees.php, admin/payments.php, admin/returns.php
+- admin/feedback.php, admin/faq.php
+
+**Employee pages:**
+- employee/index.php, employee/orders.php, employee/dispatch.php, employee/delivery.php
+
+**Shared layout/assets:**
+- includes/header.php, includes/navbar.php, includes/footer.php, includes/product-card.php
 - assets/css/style.css
 
-Database:
-- Not involved
+### Phase 2 Final Task — Informational Pages
+Status: IMPLEMENTED (this session)
 
-Testing:
-- Basic file structure review completed
-- No UI browser validation yet beyond static structure review
+**Pages created:**
+- about.php — business introduction, product categories, mission/service
+- contact.php — shop contact details, business hours, frontend-only contact form
+- privacy.php — simple student-project privacy policy
+
+**Files modified:**
+- includes/footer.php — updated Company/Support footer links
+- assets/css/style.css — added `.info-content`, `.info-section`, `.info-grid`, contact form layout classes (reuses existing `.faq-page` shell)
+
+**Links updated (footer):**
+- About Us → `/Shopping%20Cart/about.php`
+- Contact Us → `/Shopping%20Cart/contact.php` (was Contact Support → search.php)
+- Privacy Policy → `/Shopping%20Cart/privacy.php` (was faq.php)
+
+**Testing performed:**
+- Structural/code review of new pages and footer link paths
+- PHP CLI syntax check: not performed (php not in PATH)
+- Browser testing: **not performed**
+
+**Known issues (non-blocking):**
+- Navbar search box is visual only (does not submit to search.php)
+- Contact form on contact.php is UI-only (no backend processing)
+- auth/register.php Terms/Privacy links still use `#` placeholders
+- Customer pages duplicate some dashboard CSS inline (cosmetic/maintainability only)
 
 ---
 
 # IN PROGRESS
 
-### Architecture Freeze
-Current state:
-- Requirements are being used as the source of truth
-- Technical architecture is being tightened to a single-developer 10-day build
-- Payment architecture is explicitly non-integrated and manual at application level
-- Order number generation is corrected to use database order_id sequence
-- Feedback and FAQ remain in required scope
-
-What has already been done:
-- Project scope reduced to explicit requirements only
-- Unnecessary features removed from the design
-- Minimal database design selected
-- Payment methods simplified to manual application-level status controls
-- Role-based rules clarified
-- Implementation order locked
-
-What remains:
-- Final approval from project owner
-- Start Phase 2 frontend/UI implementation using Google Stitch design
-
-Files being modified:
-- PROJECT_STATUS.md
-- TECHNICAL_ARCHITECTURE.md
-
-Known issues:
-- None at blueprint stage
+None — frontend phase is complete and frozen.
 
 ---
 
 # NOT STARTED
 
-- [x] Homepage implementation from Google Stitch design
-- [x] Shop/products page implementation
-- [x] Product detail page implementation
-- [x] Search page implementation
-- [x] Cart UI implementation
-- [x] Checkout UI implementation
-- [x] Login/register UI implementation
-- [x] Customer page UI implementation
-- [x] Admin/employee UI shells
 - PHP backend implementation
 - MySQL database creation
 - Authentication implementation
 - Cart and checkout business logic
-- Return-processing workflow
-- Feedback and FAQ implementation
+- Contact form backend / email
+- Order processing workflows
+- Return-processing workflow (backend)
+- Feedback submission (backend)
 - Security hardening
 - End-to-end testing
 
@@ -131,266 +111,72 @@ Known issues:
 
 - Requirements alignment review: [x]
 - Architecture freeze review: [x]
-- Scope validity review: [x]
-- Database design review: [x]
-- RBAC review: [x]
-- Implementation order review: [x]
-- 10-day plan review: [x]
-- Homepage UI CSS implementation: [x]
-- Shop/products page UI implementation: [x]
-- Product detail page UI implementation: [~] (Manual visual check required)
+- Frontend structural/code review: [~] (no browser test)
+- Informational pages created: [~] (files verified; browser test pending)
 
 ---
 
 # KNOWN BUGS
 
-No implementation bugs yet. This phase is blueprint-only and does not contain executable code.
+No blocking frontend bugs identified in code review. See non-blocking issues above.
 
 ---
 
 # DATABASE STATUS
 
-Tables created:
-- None yet
+Tables created: None yet
+Current state: Phase 1 design only; no live schema
 
-Tables modified:
-- None yet
-
-Columns added/removed:
-- None yet
-
-Relationships:
-- Not implemented yet
-
-Seed/sample data status:
-- Not started
-
-Current database version/schema state:
-- Phase 1 design only; no live schema exists yet
-- Planned table set corrected to minimum required tables: users, customers, employees, categories, products, orders, order_items, returns, feedback, faqs
-- Payment is stored as application-level method/status, not as external payment integration
-- Order number generation planned as delivery_type + first_product_id + padded order_id
-- Feedback and FAQ are required and remain included in the database plan
+Planned tables: users, customers, employees, categories, products, orders, order_items, returns, feedback, faqs
 
 ---
 
 # FILE STRUCTURE STATUS
 
-Current important project structure:
-- root project folder with PHP web app skeleton already present
-- includes folder exists
-- config folder exists
-- admin, auth, customer, employee folders exist
-- public pages already exist as initial project files
-
-Important notes:
-- Project files are being treated as a starting scaffold only
-- Phase 1 is an architecture and requirements freeze only
-- No frontend implementation or backend code generation has started yet
-
----
-
-# REQUIREMENT COVERAGE
-
-REQ-01:
-Product browsing without login.
-Status: NOT STARTED
-Implementation: public catalog pages
-
-REQ-02:
-Product details must be viewable.
-Status: NOT STARTED
-Implementation: product detail page
-
-REQ-03:
-Products must have a unique 7-digit ID.
-Status: PLAN
-Implementation: product table design using product_code + product_number + full_product_id
-
-REQ-04:
-Users must register.
-Status: NOT STARTED
-Implementation: registration flow
-
-REQ-05:
-Customer login is required.
-Status: NOT STARTED
-Implementation: customer session/authentication
-
-REQ-06:
-Admin login must exist.
-Status: NOT STARTED
-Implementation: admin authentication
-
-REQ-07:
-Employee login must exist.
-Status: NOT STARTED
-Implementation: employee authentication
-
-REQ-08:
-Product management must exist.
-Status: NOT STARTED
-Implementation: admin products page
-
-REQ-09:
-Stock must be managed.
-Status: NOT STARTED
-Implementation: product stock field and admin stock management
-
-REQ-10:
-Orders must exist.
-Status: NOT STARTED
-Implementation: checkout + orders system
-
-REQ-11:
-Order numbers must be 16 digits.
-Status: PLAN
-Implementation: order number generation logic using delivery type + product ID + padded order_id
-
-REQ-12:
-Delivery type must be supported.
-Status: PLAN
-Implementation: order delivery_type field and selection flow
-
-REQ-13:
-Payment methods must be supported.
-Status: PLAN
-Implementation: orders.payment_method + payment_status logic with manual application-level handling; no external payment API
-
-REQ-14:
-Payment clearance must be enforced.
-Status: NOT STARTED
-Implementation: payment verification workflow
-
-REQ-15:
-Dispatch must be supported.
-Status: NOT STARTED
-Implementation: employee dispatch workflow
-
-REQ-16:
-Delivery update must be supported.
-Status: NOT STARTED
-Implementation: employee delivery workflow
-
-REQ-17:
-Order tracking must exist.
-Status: NOT STARTED
-Implementation: order details/status pages
-
-REQ-18:
-Cancellation before dispatch must exist.
-Status: NOT STARTED
-Implementation: cancellation logic
-
-REQ-19:
-Returns and replacements must exist.
-Status: NOT STARTED
-Implementation: return request and approval flow
-
-REQ-20:
-Return/replacement must be allowed only within 7 days.
-Status: PLAN
-Implementation: return rule validation
-
-REQ-21:
-Warranty information if applicable.
-Status: NOT STARTED
-Implementation: product policy or FAQ if required by original docs
-
-REQ-22:
-Employee permissions must be enforced.
-Status: PLAN
-Implementation: employee RBAC
-
-REQ-23:
-Admin/dealer permissions must be enforced.
-Status: PLAN
-Implementation: admin RBAC
-
-REQ-24:
-Customer permissions must be enforced.
-Status: PLAN
-Implementation: customer RBAC
-
-REQ-25:
-Advanced/search functionality must exist.
-Status: PLAN
-Implementation: search page and simple filtering
-
-REQ-26:
-Database maintenance must be possible.
-Status: NOT STARTED
-Implementation: normal CRUD and schema management through the app; no standalone SQL admin interface
-
-REQ-27:
-Feedback must exist.
-Status: PLAN
-Implementation: feedback table and customer/admin feedback workflow
-
-REQ-28:
-FAQ must exist.
-Status: PLAN
-Implementation: faqs table and public/admin FAQ management
-
-REQ-29:
-Customer account management must exist.
-Status: NOT STARTED
-Implementation: customer account page and profile functions
+```
+Shopping Cart/
+├── index.php, products.php, product.php, search.php
+├── cart.php, checkout.php, faq.php
+├── about.php, contact.php, privacy.php
+├── auth/login.php, auth/register.php
+├── customer/ (index, orders, account, returns)
+├── admin/ (index, products, inventory, orders, customers, employees, payments, returns, feedback, faq)
+├── employee/ (index, orders, dispatch, delivery)
+├── includes/ (header, navbar, footer, product-card)
+├── assets/css/style.css
+└── config/ (exists, backend not implemented)
+```
 
 ---
 
 # CURRENT WORK
 
 ## Currently Working On
-**Phase 3 Step 1 — Database Implementation**
+Nothing — frontend complete; awaiting Phase 3 start
 
 ## Last Completed Task
-Implemented the Admin and Employee UI Shells (Phase 2 Step 10). Built out 14 functional frontend pages using mock data to establish the interface layout before backend integration.
-- **Admin Pages Created:** `index.php`, `products.php`, `inventory.php`, `orders.php`, `customers.php`, `employees.php`, `payments.php`, `returns.php`, `feedback.php`, `faq.php`.
-- **Employee Pages Created:** `index.php`, `orders.php`, `dispatch.php`, `delivery.php`.
-
-The UI heavily reused the `.customer-layout` to ensure consistency, while utilizing functional tables, forms (Add Product, Create Employee, Add FAQ), and color-coded status badges. 
-
-Files created/modified:
-- `/admin/*` (10 files created)
-- `/employee/*` (4 files created)
-
-This completes the entire Phase 2 Frontend scope.
+Created informational pages (about.php, contact.php, privacy.php) and updated footer navigation links. Marked frontend phase COMPLETE.
 
 ## Project Transition State
-**FRONTEND:** COMPLETE
+**FRONTEND:** COMPLETE (FROZEN)
 **BACKEND:** NOT STARTED
 **DATABASE:** NOT IMPLEMENTED
 **AUTHENTICATION:** NOT IMPLEMENTED
 **BUSINESS LOGIC:** NOT IMPLEMENTED
 
 ## Next Task
-Phase 3 — Database + PHP Backend Implementation (Step 1: Database Setup).
-
-## Next Recommended Action
-The next implementation task is:
-1. Create `database.sql` architecture.
-2. Create the MySQL database.
-3. Create `config/database.php`.
-4. Verify PDO connection.
-5. Seed minimal test data.
-
-**DO NOT start Phase 3 automatically.** Await explicit instruction.
+Begin Phase 3: MySQL schema creation and PHP backend implementation (database, authentication, products, cart, checkout, orders). Browser-test all pages under XAMPP first if not yet done manually.
 
 ---
 
-# HANDOFF INSTRUCTIONS
+# CURRENT AI HANDOFF
 
-The project is currently in Phase 1.
-The corrected architecture, requirements, database design, module map, implementation order, and risk plan have been frozen.
-No backend or frontend code generation should begin until the corrected blueprint is approved.
-The payment system remains strictly manual and non-integrated, using application-level status controls only.
-The order number generation uses delivery type + product ID + padded database order_id as the 8-digit sequence.
-The guest shopping flow allows browsing and optional session cart access before login, while checkout remains restricted to registered customers.
-Feedback and FAQ remain required scope.
-When implementation starts, the next task is to convert the approved UI design into the existing PHP app structure while preserving the architecture defined in this document and in TECHNICAL_ARCHITECTURE.md.
-Read PROJECT_STATUS.md before making any project changes.
-Do not expand scope beyond the approved requirements.
-Do not rewrite working functionality unless a real bug or architecture issue is identified.
+**Frontend is FROZEN.** Do not redesign existing pages.
 
----
+**Completed This Session:**
+- Created about.php, contact.php, privacy.php using existing header/navbar/footer and design system
+- Added minimal shared CSS for informational page sections (reuses `.faq-page` layout)
+- Updated footer links: About Us, Contact Us, Privacy Policy
+
+**Exact Next Recommended Action:**
+Manually browser-test at http://localhost/Shopping%20Cart/ — then start Phase 3 backend (MySQL schema + PHP).

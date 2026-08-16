@@ -2,7 +2,13 @@
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>
-                <div class="footer-brand">Arts</div>
+                <div class="footer-brand"><a href="<?= $basePath ?>/index.php" class="site-logo">
+    <img 
+        src="<?= $basePath ?>/assets/images/logo/logo.jpg"
+        alt="Arts"
+        class="site-logo-image"
+    >
+</a></div>
                 <p>Curating joyful, thoughtful gifts, stationery, and everyday lifestyle essentials.</p>
             </div>
 
@@ -19,7 +25,7 @@
             <div>
                 <h4>Support</h4>
                 <ul>
-                    <li><a href="<?= $basePath ?>/search.php">Contact Support</a></li>
+                    <li><a href="<?= $basePath ?>/contact.php">Contact Us</a></li>
                     <li><a href="<?= $basePath ?>/cart.php">Shipping Policy</a></li>
                     <li><a href="<?= $basePath ?>/customer/returns.php">Returns</a></li>
                 </ul>
@@ -28,8 +34,8 @@
             <div>
                 <h4>Company</h4>
                 <ul>
-                    <li><a href="<?= $basePath ?>/index.php">About Us</a></li>
-                    <li><a href="<?= $basePath ?>/faq.php">Privacy Policy</a></li>
+                    <li><a href="<?= $basePath ?>/about.php">About Us</a></li>
+                    <li><a href="<?= $basePath ?>/privacy.php">Privacy Policy</a></li>
                     <li><a href="<?= $basePath ?>/auth/register.php">Create Account</a></li>
                 </ul>
             </div>

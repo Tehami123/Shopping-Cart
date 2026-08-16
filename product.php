@@ -57,8 +57,341 @@ for ($i = 0; $i < 5; $i++) {
 }
 ?>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Premium Aesthetics for Product Page */
+.product-page {
+    font-family: 'Outfit', sans-serif;
+    background: #fdfcff;
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+    padding-top: 20px;
+}
+
+.product-page::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(95,51,168,0.06) 0%, transparent 70%);
+    top: -100px;
+    left: -200px;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.product-page-inner {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatImage {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+.shop-breadcrumb {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    margin-bottom: 30px;
+    animation: fadeInUp 0.5s ease-out both;
+}
+
+.shop-breadcrumb a {
+    color: var(--text-soft);
+    transition: color 0.2s ease;
+}
+
+.shop-breadcrumb a:hover {
+    color: var(--brand-primary);
+}
+
+.product-details-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 60px;
+    align-items: start;
+    margin-bottom: 80px;
+}
+
+.product-gallery {
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.product-main-image {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 60px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 560px;
+}
+
+.product-main-image img {
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.08));
+    animation: floatImage 8s ease-in-out infinite;
+}
+
+.product-main-image.is-out-of-stock img {
+    opacity: 0.4;
+    filter: grayscale(100%);
+    animation: none;
+}
+
+.product-info {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+    padding-top: 20px;
+}
+
+.product-id {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(95, 51, 168, 0.05);
+    color: var(--brand-primary);
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.product-title {
+    font-size: clamp(2.2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+
+.product-meta-row {
+    margin-bottom: 24px;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stars {
+    color: #f8bf4a;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+.rating-count {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-soft);
+    font-size: 0.95rem;
+}
+
+.product-price-row {
+    margin-bottom: 16px;
+}
+
+.product-price {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--brand-primary-dark);
+}
+
+.product-description {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-top: 24px;
+    margin-top: 24px;
+}
+
+.product-features {
+    margin-top: 20px;
+    padding-left: 20px;
+    color: #444;
+}
+
+.product-features li {
+    margin-bottom: 8px;
+}
+
+.product-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 52px;
+}
+
+.qty-btn {
+    width: 44px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.2s;
+}
+
+.qty-btn:hover {
+    background: #f4f4f4;
+}
+
+.qty-input {
+    width: 50px;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-left: 1px solid rgba(0,0,0,0.08);
+    border-right: 1px solid rgba(0,0,0,0.08);
+    -moz-appearance: textfield;
+}
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.add-to-cart-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    background: linear-gradient(135deg, var(--brand-primary), #7344be);
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(95, 51, 168, 0.3);
+    border: none;
+    cursor: pointer;
+}
+
+.add-to-cart-btn:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(95, 51, 168, 0.4);
+}
+
+.add-to-cart-btn[disabled] {
+    background: #dcdcdc;
+    box-shadow: none;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.product-secondary-actions {
+    margin-top: 16px;
+}
+
+.wishlist-text-btn {
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-soft);
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+}
+
+.wishlist-text-btn:hover {
+    color: var(--brand-primary);
+}
+
+.related-products {
+    padding-top: 60px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.section-heading {
+    font-size: clamp(2rem, 3vw, 2.5rem);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #1a1a1a;
+    letter-spacing: -0.02em;
+}
+
+/* Related Products Grid Styling */
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap: 26px;
+}
+
+.shop-grid .product-card {
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: #fff;
+    height: 100%;
+}
+
+.shop-grid .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(95, 51, 168, 0.08);
+    border-color: rgba(95, 51, 168, 0.1);
+}
+
+@media (max-width: 980px) {
+    .product-details-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    .product-main-image {
+        height: auto;
+        padding: 40px;
+    }
+    .shop-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .shop-grid { grid-template-columns: 1fr; }
+}
+</style>
+
 <main class="product-page">
-    <div class="container">
+    <div class="container product-page-inner">
         <!-- Breadcrumb -->
         <p class="shop-breadcrumb">
             <a href="<?= $basePath ?>/index.php">Home</a> / 
@@ -111,7 +444,7 @@ for ($i = 0; $i < 5; $i++) {
                         <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
                     </div>
 
-                    <button type="button" class="primary-button add-to-cart-btn" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>
+                    <button type="button" class="add-to-cart-btn" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>
                         Add to Cart
                     </button>
                 </div>

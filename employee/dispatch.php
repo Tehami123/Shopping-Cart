@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Dispatch Orders - Arts Employee';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -23,6 +23,7 @@ $employeeNav = [
                     <?php foreach ($employeeNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
@@ -31,27 +32,27 @@ $employeeNav = [
                     <p><strong>Note:</strong> Credit Card/Cheque orders cannot be dispatched until payment is cleared.</p>
                 </div>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Order #</th><th style="padding:12px;">Customer</th><th style="padding:12px;">Payment</th><th style="padding:12px;">Type</th><th style="padding:12px;">Status</th><th style="padding:12px;">Action</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Order #</th><th>Customer</th><th>Payment</th><th>Type</th><th>Status</th><th>Action</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">11200345001</td>
-                                <td style="padding:12px;">Jane Doe</td>
-                                <td style="padding:12px;"><span class="status-badge payment-paid">Cleared</span></td>
-                                <td style="padding:12px;">Standard</td>
-                                <td style="padding:12px;"><span class="status-badge status-processing">Ready to Dispatch</span></td>
-                                <td style="padding:12px;"><button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Dispatched!')">Dispatch Order</button></td>
+                            <tr>
+                                <td>11200345001</td>
+                                <td>Jane Doe</td>
+                                <td><span class="status-badge payment-paid">Cleared</span></td>
+                                <td>Standard</td>
+                                <td><span class="status-badge status-processing">Ready to Dispatch</span></td>
+                                <td><button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Dispatched!')">Dispatch Order</button></td>
                             </tr>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">11200345002</td>
-                                <td style="padding:12px;">John Smith</td>
-                                <td style="padding:12px;"><span class="status-badge payment-pending">Pending Cheque</span></td>
-                                <td style="padding:12px;">Express</td>
-                                <td style="padding:12px;"><span class="status-badge status-cancelled">Hold</span></td>
-                                <td style="padding:12px;"><button class="secondary-button" style="padding:4px 8px; font-size:0.8rem; opacity:0.5; cursor:not-allowed;" disabled>Wait for Payment</button></td>
+                            <tr>
+                                <td>11200345002</td>
+                                <td>John Smith</td>
+                                <td><span class="status-badge payment-pending">Pending Cheque</span></td>
+                                <td>Express</td>
+                                <td><span class="status-badge status-cancelled">Hold</span></td>
+                                <td><button class="secondary-button" style="padding:4px 8px; font-size:0.8rem; opacity:0.5; cursor:not-allowed;" disabled>Wait for Payment</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -61,3 +62,4 @@ $employeeNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

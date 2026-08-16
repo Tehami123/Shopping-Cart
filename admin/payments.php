@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Payments - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -22,25 +22,26 @@ $adminNav = [
                     <?php foreach ($adminNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Payment Verification</h1>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Order #</th><th style="padding:12px;">Customer</th><th style="padding:12px;">Method</th><th style="padding:12px;">Amount</th><th style="padding:12px;">Status</th><th style="padding:12px;">Date</th><th style="padding:12px;">Actions</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Order #</th><th>Customer</th><th>Method</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">11200345001</td>
-                                <td style="padding:12px;">Jane Doe</td>
-                                <td style="padding:12px;">Pay on Delivery (VPP)</td>
-                                <td style="padding:12px;">$24.00</td>
-                                <td style="padding:12px;"><span class="status-badge payment-pending">Pending</span></td>
-                                <td style="padding:12px;">15 Aug 2026</td>
-                                <td style="padding:12px; display:flex; gap:8px;">
+                            <tr>
+                                <td>11200345001</td>
+                                <td>Jane Doe</td>
+                                <td>Pay on Delivery (VPP)</td>
+                                <td>$24.00</td>
+                                <td><span class="status-badge payment-pending">Pending</span></td>
+                                <td>15 Aug 2026</td>
+                                <td class="admin-actions-cell">
                                     <button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Marked as Cleared')">Mark as Cleared</button>
                                     <button class="secondary-button" style="padding:4px 8px; font-size:0.8rem;" onclick="alert('Marked as Failed')">Mark as Failed</button>
                                 </td>
@@ -53,3 +54,4 @@ $adminNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

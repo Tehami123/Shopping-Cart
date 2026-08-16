@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Manage Customers - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -22,25 +22,26 @@ $adminNav = [
                     <?php foreach ($adminNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Manage Customers</h1>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Customer</th><th style="padding:12px;">Email</th><th style="padding:12px;">Phone</th><th style="padding:12px;">City</th><th style="padding:12px;">Registered Date</th><th style="padding:12px;">Status</th><th style="padding:12px;">Action</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Customer</th><th>Email</th><th>Phone</th><th>City</th><th>Registered Date</th><th>Status</th><th>Action</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">Jane Doe</td>
-                                <td style="padding:12px;">jane@example.com</td>
-                                <td style="padding:12px;">+1 555-0000</td>
-                                <td style="padding:12px;">Metropolis</td>
-                                <td style="padding:12px;">01 Jan 2026</td>
-                                <td style="padding:12px;"><span class="status-badge status-delivered">Active</span></td>
-                                <td style="padding:12px;"><button class="text-button">View</button></td>
+                            <tr>
+                                <td>Jane Doe</td>
+                                <td>jane@example.com</td>
+                                <td>+1 555-0000</td>
+                                <td>Metropolis</td>
+                                <td>01 Jan 2026</td>
+                                <td><span class="status-badge status-delivered">Active</span></td>
+                                <td><button class="text-button">View</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -50,3 +51,4 @@ $adminNav = [
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

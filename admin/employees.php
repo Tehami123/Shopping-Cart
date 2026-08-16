@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = 'Manage Employees - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
@@ -22,6 +22,7 @@ $adminNav = [
                     <?php foreach ($adminNav as $url => $label): ?>
                         <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
                     <?php endforeach; ?>
+                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             <div class="customer-content">
@@ -30,18 +31,18 @@ $adminNav = [
                     <button class="primary-button" onclick="document.getElementById('addEmpModal').style.display='flex'">Create Employee</button>
                 </div>
                 
-                <div style="overflow-x:auto; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left;">
-                        <thead style="background:var(--bg-soft); border-bottom:1px solid var(--line);">
-                            <tr><th style="padding:12px;">Employee</th><th style="padding:12px;">Email/Login</th><th style="padding:12px;">Hire Date</th><th style="padding:12px;">Status</th><th style="padding:12px;">Actions</th></tr>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Employee</th><th>Email/Login</th><th>Hire Date</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid var(--line);">
-                                <td style="padding:12px;">John Smith</td>
-                                <td style="padding:12px;">john.emp@arts.com</td>
-                                <td style="padding:12px;">10 Jun 2025</td>
-                                <td style="padding:12px;"><span class="status-badge status-delivered">Active</span></td>
-                                <td style="padding:12px;"><button class="text-button">Edit</button> | <button class="text-button" style="color:red;">Revoke</button></td>
+                            <tr>
+                                <td>John Smith</td>
+                                <td>john.emp@arts.com</td>
+                                <td>10 Jun 2025</td>
+                                <td><span class="status-badge status-delivered">Active</span></td>
+                                <td><button class="text-button">Edit</button> | <button class="text-button danger">Revoke</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -51,8 +52,8 @@ $adminNav = [
     </div>
 </main>
 
-<div id="addEmpModal" class="mock-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:#fff; padding:32px; border-radius:8px; width:100%; max-width:500px;">
+<div id="addEmpModal" class="mock-modal" style="display:none;">
+    <div class="mock-modal-content">
         <h3>Create Employee</h3>
         <form onsubmit="event.preventDefault(); alert('Employee Created!'); this.closest('.mock-modal').style.display='none';">
             <div class="form-row">
@@ -65,7 +66,7 @@ $adminNav = [
                 <div class="form-group"><label>Hire Date</label><input type="date" class="form-input"></div>
                 <div class="form-group"><label>Status</label><select class="form-select"><option>Active</option><option>Suspended</option></select></div>
             </div>
-            <div style="display:flex; gap:16px; margin-top:24px;">
+            <div class="mock-modal-actions">
                 <button type="submit" class="primary-button">Create</button>
                 <button type="button" class="secondary-button" onclick="this.closest('.mock-modal').style.display='none'">Cancel</button>
             </div>
@@ -74,3 +75,4 @@ $adminNav = [
 </div>
 
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
+

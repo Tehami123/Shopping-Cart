@@ -33,6 +33,272 @@ $mockOrders = [
 ];
 ?>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Premium Aesthetics for Customer Dashboard */
+.customer-page {
+    font-family: 'Outfit', sans-serif;
+    background: #fdfcff;
+    position: relative;
+    overflow-x: hidden;
+    padding: 40px 0 80px;
+    min-height: calc(100vh - 200px);
+}
+
+.customer-page::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(95,51,168,0.06) 0%, transparent 70%);
+    top: -100px;
+    left: -100px;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.customer-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Sidebar */
+.customer-sidebar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,1);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+    padding: 30px 20px;
+    align-self: start;
+    animation: fadeInUp 0.6s ease-out both;
+}
+
+.customer-profile-brief {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.customer-profile-brief .avatar {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--brand-primary), #7344be);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    box-shadow: 0 8px 16px rgba(95, 51, 168, 0.2);
+}
+
+.customer-profile-brief .info strong {
+    display: block;
+    font-size: 1.15rem;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.customer-profile-brief .info span {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+}
+
+.customer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.customer-nav a {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: var(--text-soft);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.customer-nav a:hover {
+    background: rgba(95, 51, 168, 0.04);
+    color: var(--brand-primary);
+}
+
+.customer-nav a.active {
+    background: var(--brand-primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(95, 51, 168, 0.2);
+}
+
+.customer-nav a.logout-link {
+    color: #e53935;
+    margin-top: 20px;
+}
+
+.customer-nav a.logout-link:hover {
+    background: rgba(229, 57, 53, 0.1);
+}
+
+/* Main Content */
+.customer-content {
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.customer-page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 30px;
+    letter-spacing: -0.02em;
+}
+
+/* Orders specific styles */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(95, 51, 168, 0.08);
+}
+
+.order-card-header {
+    background: rgba(95, 51, 168, 0.03);
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.order-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.order-info-group .label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.order-info-group .value {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1.05rem;
+}
+
+.order-card-body {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-status-group {
+    display: flex;
+    gap: 12px;
+}
+
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.payment-pending { background: #fff3e0; color: #e65100; }
+.payment-paid { background: #e8f5e9; color: #2e7d32; }
+.payment-refunded { background: #f3e5f5; color: #7b1fa2; }
+
+.status-processing { background: #e3f2fd; color: #1565c0; }
+.status-delivered { background: #e8f5e9; color: #2e7d32; }
+.status-cancelled { background: #ffebee; color: #c62828; }
+
+.order-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.order-action-btn {
+    padding: 10px 20px;
+    background: #fff;
+    border: 1px solid var(--brand-primary);
+    color: var(--brand-primary);
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.order-action-btn:hover {
+    background: var(--brand-primary);
+    color: #fff;
+}
+
+.cancel-order-btn {
+    background: none;
+    border: none;
+    color: #e53935;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.cancel-order-btn:hover {
+    color: #b71c1c;
+}
+
+@media (max-width: 900px) {
+    .customer-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .order-card-header { grid-template-columns: 1fr; gap: 12px; }
+    .order-card-body { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .order-actions { width: 100%; justify-content: space-between; }
+}
+</style>
+
 <main class="customer-page">
     <div class="container">
         
@@ -87,9 +353,9 @@ $mockOrders = [
                                     </div>
                                 </div>
                                 <div class="order-actions">
-                                    <button class="secondary-button order-action-btn">View Details</button>
+                                    <button class="order-action-btn">View Details</button>
                                     <?php if ($order['cancellable']): ?>
-                                        <button class="text-button cancel-order-btn" onclick="alert('Order cancellation mock triggered.');">Cancel Order</button>
+                                        <button class="cancel-order-btn" onclick="alert('Order cancellation mock triggered.');">Cancel Order</button>
                                     <?php endif; ?>
                                 </div>
                             </div>
