@@ -7,13 +7,13 @@ Technology:
 PHP + MySQL + Apache
 
 Current Phase:
-Phase 2 — Frontend/UI Implementation **COMPLETE**
+Phase 3 — Backend + Database (Step 2: Database Connection **COMPLETE**)
 
 Overall Progress:
-~100% frontend / ~15% total project
+~100% frontend / ~30% total project
 
 Last Updated:
-2026-08-16
+2026-08-17
 
 ---
 
@@ -52,7 +52,7 @@ All public, customer, admin, employee, and informational pages are implemented w
 - assets/css/style.css
 
 ### Phase 2 Final Task — Informational Pages
-Status: IMPLEMENTED (this session)
+Status: IMPLEMENTED
 
 **Pages created:**
 - about.php — business introduction, product categories, mission/service
@@ -61,44 +61,122 @@ Status: IMPLEMENTED (this session)
 
 **Files modified:**
 - includes/footer.php — updated Company/Support footer links
-- assets/css/style.css — added `.info-content`, `.info-section`, `.info-grid`, contact form layout classes (reuses existing `.faq-page` shell)
+- assets/css/style.css — added informational page layout classes
 
-**Links updated (footer):**
-- About Us → `/Shopping%20Cart/about.php`
-- Contact Us → `/Shopping%20Cart/contact.php` (was Contact Support → search.php)
-- Privacy Policy → `/Shopping%20Cart/privacy.php` (was faq.php)
+### Phase 3 — Backend Step 1: Database Foundation
+Status: **IMPLEMENTED + TESTED**
 
-**Testing performed:**
-- Structural/code review of new pages and footer link paths
-- PHP CLI syntax check: not performed (php not in PATH)
-- Browser testing: **not performed**
+**Files created:**
+- database.sql — full schema, constraints, indexes, and seed data
+
+**Database name:** `arts_shop`
+
+**Tables created (10):**
+1. `users` — all account types (customer, employee, admin)
+2. `customers` — customer profile (1:1 with users)
+3. `employees` — employee profile (1:1 with users)
+4. `categories` — product categories
+5. `products` — catalog with 7-digit product ID structure
+6. `orders` — orders with payment/delivery workflow fields
+7. `order_items` — line items per order
+8. `returns` — return/replacement requests
+9. `feedback` — customer feedback submissions
+10. `faqs` — FAQ content for admin/public pages
+
+**Relationships (foreign keys):**
+- `customers.user_id` → `users.user_id` (CASCADE)
+- `employees.user_id` → `users.user_id` (CASCADE)
+- `products.category_id` → `categories.category_id` (RESTRICT)
+- `orders.customer_id` → `customers.customer_id` (RESTRICT)
+- `order_items.order_id` → `orders.order_id` (CASCADE)
+- `order_items.product_id` → `products.product_id` (RESTRICT)
+- `returns.order_id` → `orders.order_id` (RESTRICT)
+- `returns.order_item_id` → `order_items.order_item_id` (RESTRICT)
+- `returns.customer_id` → `customers.customer_id` (RESTRICT)
+- `returns.approved_by` → `users.user_id` (SET NULL)
+- `feedback.customer_id` → `customers.customer_id` (CASCADE)
+- `feedback.reviewed_by` → `users.user_id` (SET NULL)
+
+**Key constraints and indexes:**
+- 7-digit product ID: `product_code` (2 digits) + `product_number` (5 digits) → generated `full_product_id` (UNIQUE)
+- CHECK constraints on product code/number format, price ≥ 0, stock ≥ 0
+- 16-digit `order_number` with CHECK `^[0-9]{16}$` (generated in PHP using `order_id`, not COUNT(*))
+- Payment tracked in `orders.payment_method` / `orders.payment_status` (no external payment tables)
+- Payment methods: credit_card, cheque, vpn (VPP), pay_on_delivery
+- Order statuses: pending, confirmed, dispatched, delivered, cancelled
+- Return statuses: requested, approved, rejected, completed
+- FAQ statuses: published, draft
+- Feedback statuses: new, reviewed
+- Indexes on foreign keys, status fields, order dates, product names, and lookup columns
+
+**Seed data added:**
+- 8 categories: Stationery, Gift Articles, Greeting Cards, Dolls & Toys, Files & Folders, Handbags, Wallets, Beauty
+- 14 products (1–3 per category) with realistic names/prices aligned to frontend mock catalog
+- Product IDs use category-based 2-digit codes (01–08) + 5-digit sequence
+- No user/order/feedback/faq seed rows (backend logic not implemented yet)
+
+**Tests actually performed:**
+- [x] MariaDB import via XAMPP: `mysql -u root -e "SOURCE .../database.sql"` — **passed**
+- [x] Verified all 10 tables exist in `arts_shop`
+- [x] Verified seed counts: 8 categories, 14 products
+- [x] Verified generated `full_product_id` values (e.g. `0100001`, `0800001`)
+- [x] Verified 12 foreign key constraints in `information_schema`
+- [x] Verified CHECK constraint rejects invalid `product_code` — **passed**
+- [x] Verified UNIQUE constraint rejects duplicate product code/number — **passed**
 
 **Known issues (non-blocking):**
-- Navbar search box is visual only (does not submit to search.php)
-- Contact form on contact.php is UI-only (no backend processing)
-- auth/register.php Terms/Privacy links still use `#` placeholders
-- Customer pages duplicate some dashboard CSS inline (cosmetic/maintainability only)
+- Frontend category labels differ slightly from DB seed names (e.g. frontend "Dolls" vs DB "Dolls & Toys"; frontend "Beauty Products" vs DB "Beauty"). Resolve when connecting products to DB in Backend Phase 2+.
+- Frontend mock product IDs use `ART1001` format; DB uses 7-digit numeric IDs per architecture. Mapping will happen in PHP backend.
+- MySQL was not running initially; started via XAMPP `mysql_start.bat` for testing.
+- Resolved: `config/database.php` now created (Backend Phase 2).
+
+### Phase 3 — Backend Step 2: Database Connection
+Status: **IMPLEMENTED + TESTED**
+
+**Files created:**
+- config/database.php — shared PDO connection to `arts_shop`
+
+**Connection method:**
+- PDO via `mysql:host=localhost;dbname=arts_shop;charset=utf8mb4`
+- Credentials stored only in `config/database.php` (root / empty password)
+- Options: `ERRMODE_EXCEPTION`, `FETCH_ASSOC` default, emulated prepares disabled
+- Exposes shared `$conn` variable on include (matches TECHNICAL_ARCHITECTURE.md)
+- Provides `get_db_connection(): PDO` helper returning the same instance
+
+**Tests actually performed:**
+- [x] PHP syntax check: `php -l config/database.php` — **passed**
+- [x] PHP CLI connection test via `require config/database.php` — **passed**
+- [x] Confirmed connected database name: `arts_shop`
+- [x] Confirmed seed data readable: 8 categories, 14 products
+- [x] Confirmed `get_db_connection()` returns same PDO instance — **passed**
+
+**Known issues (non-blocking):**
+- Session ini settings from architecture doc are not in database.php yet (deferred to authentication phase)
+- No pages include database.php yet (intentional — no backend wiring until next phases)
 
 ---
 
 # IN PROGRESS
 
-None — frontend phase is complete and frozen.
+None — database connection step complete.
 
 ---
 
 # NOT STARTED
 
-- PHP backend implementation
-- MySQL database creation
-- Authentication implementation
+- Authentication (login, register, logout, sessions)
+- RBAC middleware (auth.php, rbac.php, functions.php)
+- Product listing/search connected to database
 - Cart and checkout business logic
-- Contact form backend / email
-- Order processing workflows
-- Return-processing workflow (backend)
+- Order creation and 16-digit order number generation (PHP)
+- Customer account/order/return workflows
+- Employee dispatch/delivery workflows
+- Admin CRUD and payment verification workflows
 - Feedback submission (backend)
+- FAQ management (backend)
+- Contact form backend / email
 - Security hardening
-- End-to-end testing
+- End-to-end browser testing with live data
 
 ---
 
@@ -113,21 +191,32 @@ None — frontend phase is complete and frozen.
 - Architecture freeze review: [x]
 - Frontend structural/code review: [~] (no browser test)
 - Informational pages created: [~] (files verified; browser test pending)
+- Database schema import (XAMPP MariaDB 10.4.32): [x]
+- Database constraints verification: [x]
+- PHP PDO connection test (XAMPP PHP 8.2.12): [x]
 
 ---
 
 # KNOWN BUGS
 
-No blocking frontend bugs identified in code review. See non-blocking issues above.
+No blocking bugs in database foundation. See non-blocking naming/format mismatches above.
 
 ---
 
 # DATABASE STATUS
 
-Tables created: None yet
-Current state: Phase 1 design only; no live schema
+Status: **IMPLEMENTED + TESTED**
 
-Planned tables: users, customers, employees, categories, products, orders, order_items, returns, feedback, faqs
+Database name: `arts_shop`
+
+Tables created: users, customers, employees, categories, products, orders, order_items, returns, feedback, faqs
+
+Seed data: 8 categories, 14 products
+
+Import command:
+```
+C:\xampp\mysql\bin\mysql.exe -u root -e "SOURCE C:/xampp/htdocs/Shopping Cart/database.sql"
+```
 
 ---
 
@@ -135,6 +224,7 @@ Planned tables: users, customers, employees, categories, products, orders, order
 
 ```
 Shopping Cart/
+├── database.sql              # NEW — schema + seed data
 ├── index.php, products.php, product.php, search.php
 ├── cart.php, checkout.php, faq.php
 ├── about.php, contact.php, privacy.php
@@ -144,7 +234,8 @@ Shopping Cart/
 ├── employee/ (index, orders, dispatch, delivery)
 ├── includes/ (header, navbar, footer, product-card)
 ├── assets/css/style.css
-└── config/ (exists, backend not implemented)
+└── config/
+    └── database.php          # PDO connection to arts_shop
 ```
 
 ---
@@ -152,20 +243,20 @@ Shopping Cart/
 # CURRENT WORK
 
 ## Currently Working On
-Nothing — frontend complete; awaiting Phase 3 start
+Nothing — Step 2 (database connection) complete.
 
 ## Last Completed Task
-Created informational pages (about.php, contact.php, privacy.php) and updated footer navigation links. Marked frontend phase COMPLETE.
+Created and tested `config/database.php` with PDO connection to `arts_shop`.
 
 ## Project Transition State
 **FRONTEND:** COMPLETE (FROZEN)
-**BACKEND:** NOT STARTED
-**DATABASE:** NOT IMPLEMENTED
+**DATABASE:** IMPLEMENTED + TESTED
+**BACKEND (PHP):** CONNECTION IMPLEMENTED + TESTED
 **AUTHENTICATION:** NOT IMPLEMENTED
 **BUSINESS LOGIC:** NOT IMPLEMENTED
 
 ## Next Task
-Begin Phase 3: MySQL schema creation and PHP backend implementation (database, authentication, products, cart, checkout, orders). Browser-test all pages under XAMPP first if not yet done manually.
+Backend Phase 3 — Authentication foundation (`includes/auth.php`, `auth/login.php` backend, `auth/register.php` backend, `auth/logout.php`, session setup). Do **not** implement products, cart, or checkout until auth is complete.
 
 ---
 
@@ -173,10 +264,11 @@ Begin Phase 3: MySQL schema creation and PHP backend implementation (database, a
 
 **Frontend is FROZEN.** Do not redesign existing pages.
 
-**Completed This Session:**
-- Created about.php, contact.php, privacy.php using existing header/navbar/footer and design system
-- Added minimal shared CSS for informational page sections (reuses `.faq-page` layout)
-- Updated footer links: About Us, Contact Us, Privacy Policy
+**Completed This Session (2026-08-17):**
+- Backend Phase 1: `database.sql` — 10 tables, constraints, seed data (tested)
+- Backend Phase 2: `config/database.php` — PDO connection (tested)
 
 **Exact Next Recommended Action:**
-Manually browser-test at http://localhost/Shopping%20Cart/ — then start Phase 3 backend (MySQL schema + PHP).
+Implement authentication (Backend Phase 3): session setup, `includes/auth.php`, login/register/logout handlers. Use `require_once` for `config/database.php` and the shared `$conn` variable.
+
+**Do NOT yet implement:** products DB wiring, cart, checkout, orders, APIs, or frontend redesign.
