@@ -7,6 +7,7 @@ $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 
+$db = get_db_connection();
 $activePage = 'delivery.php';
 $employeeNav = [
     'index.php' => 'Dashboard',
@@ -14,6 +15,18 @@ $employeeNav = [
     'dispatch.php' => 'Dispatch',
     'delivery.php' => 'Delivery'
 ];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deliver_order'])) {
+    $orderId = (int) ($_POST['order_id'] ?? 0);
+    if ($orderId > 0) {
+        $db->prepare('UPDATE orders SET status = :status, delivery_date = CURDATE() WHERE order_id = :order_id AND status = "dispatched"')->execute([
+            ':status' => 'delivered',
+            ':order_id' => $orderId,
+        ]);
+    }
+}
+
+$orders = $db->query('SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE o.status IN ("dispatched", "delivered") ORDER BY o.order_id DESC')->fetchAll();
 ?>
 <main class="customer-page employee-page">
     <div class="container">
@@ -31,21 +44,33 @@ $employeeNav = [
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Delivery Updates</h1>
-                
+
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr><th>Order #</th><th>Customer</th><th>Dispatch Date</th><th>Type</th><th>Delivery Status</th><th>Action</th></tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>11200345005</td>
-                                <td>Jane Doe</td>
-                                <td>14 Aug 2026</td>
-                                <td>Standard</td>
-                                <td><span class="status-badge status-processing">In Transit</span></td>
-                                <td><button class="primary-button" style="padding:4px 12px; font-size:0.8rem; height:auto;" onclick="alert('Marked as Delivered!')">Mark Delivered</button></td>
-                            </tr>
+                            <?php foreach ($orders as $order): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= $order['dispatch_date'] ? date('d M Y', strtotime($order['dispatch_date'])) : '—' ?></td>
+                                    <td><?= ucfirst(htmlspecialchars($order['delivery_type'], ENT_QUOTES, 'UTF-8')) ?></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($order['status'], 'order') ?>"><?= ucfirst(htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td>
+                                        <?php if ($order['status'] === 'dispatched'): ?>
+                                            <form method="POST" style="display:inline;">
+                                                <input type="hidden" name="deliver_order" value="1">
+                                                <input type="hidden" name="order_id" value="<?= (int) $order['order_id'] ?>">
+                                                <button type="submit" class="primary-button" style="padding:4px 12px; font-size:0.8rem; height:auto;">Mark Delivered</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="status-badge status-delivered">Delivered</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>

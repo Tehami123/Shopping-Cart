@@ -7,6 +7,7 @@ $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 
+$db = get_db_connection();
 $activePage = 'orders.php';
 $employeeNav = [
     'index.php' => 'Dashboard',
@@ -14,6 +15,9 @@ $employeeNav = [
     'dispatch.php' => 'Dispatch',
     'delivery.php' => 'Delivery'
 ];
+
+$stmt = $db->query('SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id ORDER BY o.order_id DESC');
+$orders = $stmt->fetchAll();
 ?>
 <main class="customer-page employee-page">
     <div class="container">
@@ -31,22 +35,23 @@ $employeeNav = [
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Order View</h1>
-                
+
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>Order #</th><th>Customer</th><th>Date</th><th>Payment</th><th>Status</th><th>Type</th><th>Action</th></tr>
+                            <tr><th>Order #</th><th>Customer</th><th>Date</th><th>Payment</th><th>Status</th><th>Type</th></tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>11200345001</td>
-                                <td>Jane Doe</td>
-                                <td>15 Aug 2026</td>
-                                <td><span class="status-badge payment-pending">Pending</span></td>
-                                <td><span class="status-badge status-processing">Processing</span></td>
-                                <td>Express</td>
-                                <td><button class="text-button">View</button></td>
-                            </tr>
+                            <?php foreach ($orders as $order): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= date('d M Y', strtotime($order['order_date'])) ?></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($order['payment_status'], 'payment') ?>"><?= ucfirst(htmlspecialchars($order['payment_status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($order['status'], 'order') ?>"><?= ucfirst(htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td><?= ucfirst(htmlspecialchars($order['delivery_type'], ENT_QUOTES, 'UTF-8')) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>

@@ -446,3 +446,205 @@ function get_customer_order_history(int $customerId): array
 
     return $stmt->fetchAll();
 }
+
+function get_status_badge_class(string $status, string $group = 'order'): string
+{
+    $status = strtolower(trim($status));
+
+    if ($group === 'payment') {
+        $map = [
+            'pending' => 'payment-pending',
+            'cleared' => 'payment-paid',
+            'failed' => 'status-cancelled',
+        ];
+        return $map[$status] ?? 'payment-pending';
+    }
+
+    if ($group === 'return') {
+        $map = [
+            'requested' => 'payment-pending',
+            'approved' => 'status-processing',
+            'rejected' => 'status-cancelled',
+            'completed' => 'status-delivered',
+        ];
+        return $map[$status] ?? 'payment-pending';
+    }
+
+    if ($group === 'feedback') {
+        $map = [
+            'new' => 'payment-pending',
+            'reviewed' => 'status-delivered',
+        ];
+        return $map[$status] ?? 'payment-pending';
+    }
+
+    if ($group === 'faq') {
+        $map = [
+            'draft' => 'payment-pending',
+            'published' => 'status-delivered',
+        ];
+        return $map[$status] ?? 'payment-pending';
+    }
+
+    $map = [
+        'pending' => 'payment-pending',
+        'confirmed' => 'status-processing',
+        'dispatched' => 'status-processing',
+        'delivered' => 'status-delivered',
+        'cancelled' => 'status-cancelled',
+    ];
+
+    return $map[$status] ?? 'payment-pending';
+}
+
+function get_all_orders_for_admin(?string $status = null, ?string $deliveryType = null): array
+{
+    $db = get_db_connection();
+    $sql = 'SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name
+        FROM orders o
+        INNER JOIN customers c ON c.customer_id = o.customer_id';
+    $params = [];
+
+    if ($status !== null && $status !== '' && strtolower($status) !== 'all') {
+        $sql .= ' WHERE o.status = :status';
+        $params[':status'] = strtolower(trim($status));
+    }
+
+    if ($deliveryType !== null && $deliveryType !== '' && strtolower($deliveryType) !== 'all') {
+        if (empty($params)) {
+            $sql .= ' WHERE';
+        } else {
+            $sql .= ' AND';
+        }
+        $sql .= ' o.delivery_type = :delivery_type';
+        $params[':delivery_type'] = strtolower(trim($deliveryType));
+    }
+
+    $sql .= ' ORDER BY o.order_id DESC';
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+function get_all_returns_for_admin(): array
+{
+    $db = get_db_connection();
+    $sql = 'SELECT r.*, o.order_number, CONCAT(c.first_name, " ", c.last_name) AS customer_name,
+            p.name AS product_name, oi.quantity, oi.unit_price
+        FROM returns r
+        INNER JOIN orders o ON o.order_id = r.order_id
+        INNER JOIN customers c ON c.customer_id = r.customer_id
+        INNER JOIN order_items oi ON oi.order_item_id = r.order_item_id
+        INNER JOIN products p ON p.product_id = oi.product_id
+        ORDER BY r.return_id DESC';
+    $stmt = $db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function get_all_feedback_for_admin(): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT f.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name
+        FROM feedback f
+        INNER JOIN customers c ON c.customer_id = f.customer_id
+        ORDER BY f.feedback_id DESC'
+    );
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function get_all_faqs_for_admin(?string $status = null): array
+{
+    $db = get_db_connection();
+    $sql = 'SELECT * FROM faqs';
+    $params = [];
+
+    if ($status !== null && $status !== '' && strtolower($status) !== 'all') {
+        $sql .= ' WHERE status = :status';
+        $params[':status'] = strtolower(trim($status));
+    }
+
+    $sql .= ' ORDER BY display_order ASC, faq_id DESC';
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+function get_all_published_faqs(): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare('SELECT * FROM faqs WHERE status = :status ORDER BY display_order ASC, faq_id DESC');
+    $stmt->execute([':status' => 'published']);
+    return $stmt->fetchAll();
+}
+
+function get_customer_eligible_return_items(int $customerId): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT oi.order_item_id, o.order_id, o.order_number, o.delivery_date, p.name AS product_name, p.image_url,
+                oi.quantity, oi.unit_price
+        FROM orders o
+        INNER JOIN order_items oi ON oi.order_id = o.order_id
+        INNER JOIN products p ON p.product_id = oi.product_id
+        LEFT JOIN returns r ON r.order_item_id = oi.order_item_id AND r.customer_id = :customer_id
+        WHERE o.customer_id = :customer_id
+          AND o.status = :status
+          AND o.delivery_date IS NOT NULL
+          AND r.return_id IS NULL
+        ORDER BY o.delivery_date DESC'
+    );
+    $stmt->execute([
+        ':customer_id' => $customerId,
+        ':status' => 'delivered',
+    ]);
+    return $stmt->fetchAll();
+}
+
+function get_customer_return_requests(int $customerId): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT r.*, o.order_number, p.name AS product_name
+        FROM returns r
+        INNER JOIN orders o ON o.order_id = r.order_id
+        INNER JOIN order_items oi ON oi.order_item_id = r.order_item_id
+        INNER JOIN products p ON p.product_id = oi.product_id
+        WHERE r.customer_id = :customer_id
+        ORDER BY r.request_date DESC'
+    );
+    $stmt->execute([':customer_id' => $customerId]);
+    return $stmt->fetchAll();
+}
+
+function get_order_line_items_for_admin(int $orderId): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT oi.*, p.name AS product_name, p.full_product_id
+        FROM order_items oi
+        INNER JOIN products p ON p.product_id = oi.product_id
+        WHERE oi.order_id = :order_id
+        ORDER BY oi.order_item_id ASC'
+    );
+    $stmt->execute([':order_id' => $orderId]);
+    return $stmt->fetchAll();
+}
+
+function get_order_by_id_for_admin(int $orderId): ?array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name
+        FROM orders o
+        INNER JOIN customers c ON c.customer_id = o.customer_id
+        WHERE o.order_id = :order_id LIMIT 1'
+    );
+    $stmt->execute([':order_id' => $orderId]);
+    $order = $stmt->fetch();
+    return $order ?: null;
+}

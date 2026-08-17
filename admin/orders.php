@@ -7,12 +7,36 @@ $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 
+$db = get_db_connection();
 $activePage = 'orders.php';
 $adminNav = [
     'index.php' => 'Dashboard', 'products.php' => 'Products', 'inventory.php' => 'Inventory',
     'orders.php' => 'Orders', 'customers.php' => 'Customers', 'employees.php' => 'Employees',
     'payments.php' => 'Payments', 'returns.php' => 'Returns', 'feedback.php' => 'Feedback', 'faq.php' => 'FAQ'
 ];
+
+$statusFilter = strtolower(trim((string) ($_GET['status'] ?? 'all')));
+$deliveryFilter = strtolower(trim((string) ($_GET['delivery'] ?? 'all')));
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_order_status'])) {
+    $orderId = (int) ($_POST['order_id'] ?? 0);
+    $status = $_POST['status'] ?? 'pending';
+    if ($orderId > 0 && in_array($status, ['pending', 'confirmed', 'dispatched', 'delivered', 'cancelled'], true)) {
+        $db->prepare('UPDATE orders SET status = :status WHERE order_id = :order_id')->execute([
+            ':status' => $status,
+            ':order_id' => $orderId,
+        ]);
+    }
+}
+
+$sql = 'SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id';
+$params = [];
+if ($statusFilter !== '' && $statusFilter !== 'all') { $sql .= ' WHERE o.status = :status'; $params[':status'] = $statusFilter; }
+if ($deliveryFilter !== '' && $deliveryFilter !== 'all') { $sql .= (empty($params) ? ' WHERE' : ' AND') . ' o.delivery_type = :delivery_type'; $params[':delivery_type'] = $deliveryFilter; }
+$sql .= ' ORDER BY o.order_id DESC';
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
+$orders = $stmt->fetchAll();
 ?>
 <main class="customer-page admin-page">
     <div class="container">
@@ -30,17 +54,31 @@ $adminNav = [
             </aside>
             <div class="customer-content">
                 <h1 class="customer-page-title">Manage Orders</h1>
-                
+
                 <div class="admin-filter-bar">
-                    <div class="form-group">
-                        <label>Filter Status</label>
-                        <select class="form-select"><option>All</option><option>Processing</option><option>Delivered</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Delivery Type</label>
-                        <select class="form-select"><option>All</option><option>Standard</option><option>Express</option></select>
-                    </div>
-                    <button class="primary-button">Apply Filters</button>
+                    <form method="GET" style="display:flex; gap:16px; align-items:end; flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;">
+                            <label>Filter Status</label>
+                            <select name="status" class="form-select">
+                                <option value="all" <?= $statusFilter === 'all' ? 'selected' : '' ?>>All</option>
+                                <option value="pending" <?= $statusFilter === 'pending' ? 'selected' : '' ?>>Pending</option>
+                                <option value="confirmed" <?= $statusFilter === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
+                                <option value="dispatched" <?= $statusFilter === 'dispatched' ? 'selected' : '' ?>>Dispatched</option>
+                                <option value="delivered" <?= $statusFilter === 'delivered' ? 'selected' : '' ?>>Delivered</option>
+                                <option value="cancelled" <?= $statusFilter === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>Delivery Type</label>
+                            <select name="delivery" class="form-select">
+                                <option value="all" <?= $deliveryFilter === 'all' ? 'selected' : '' ?>>All</option>
+                                <option value="standard" <?= $deliveryFilter === 'standard' ? 'selected' : '' ?>>Standard</option>
+                                <option value="express" <?= $deliveryFilter === 'express' ? 'selected' : '' ?>>Express</option>
+                                <option value="pickup" <?= $deliveryFilter === 'pickup' ? 'selected' : '' ?>>Pickup</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="primary-button">Apply Filters</button>
+                    </form>
                 </div>
 
                 <div class="table-responsive">
@@ -49,16 +87,30 @@ $adminNav = [
                             <tr><th>Order #</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment Status</th><th>Order Status</th><th>Delivery</th><th>Action</th></tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>11200345001</td>
-                                <td>Jane Doe</td>
-                                <td>15 Aug 2026</td>
-                                <td>$24.00</td>
-                                <td><span class="status-badge payment-pending">Pending</span></td>
-                                <td><span class="status-badge status-processing">Processing</span></td>
-                                <td>Standard</td>
-                                <td><button class="text-button">View</button></td>
-                            </tr>
+                            <?php foreach ($orders as $order): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= date('d M Y', strtotime($order['order_date'])) ?></td>
+                                    <td><?= format_currency((float) $order['total_amount']) ?></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($order['payment_status'], 'payment') ?>"><?= ucfirst(htmlspecialchars($order['payment_status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($order['status'], 'order') ?>"><?= ucfirst(htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td><?= ucfirst(htmlspecialchars($order['delivery_type'], ENT_QUOTES, 'UTF-8')) ?></td>
+                                    <td>
+                                        <form method="POST" style="display:flex; gap:8px;">
+                                            <input type="hidden" name="order_id" value="<?= (int) $order['order_id'] ?>">
+                                            <select name="status" class="form-select" style="min-width:120px;">
+                                                <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
+                                                <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
+                                                <option value="dispatched" <?= $order['status'] === 'dispatched' ? 'selected' : '' ?>>Dispatched</option>
+                                                <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Delivered</option>
+                                                <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                            </select>
+                                            <button type="submit" name="admin_order_status" value="1" class="secondary-button" style="padding:4px 8px; font-size:0.8rem;">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
