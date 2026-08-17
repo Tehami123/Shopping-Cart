@@ -1,33 +1,115 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
+require_customer();
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle = 'Checkout - Arts';
 $basePath = '/Shopping%20Cart';
+
+$customerId = get_customer_id_for_user((int) current_user_id());
+if ($customerId === null) {
+    redirect_to($basePath . '/auth/login.php');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $cart = get_cart();
+    if (empty($cart)) {
+        $_SESSION['cart_error'] = 'Your cart is empty.';
+        redirect_to($basePath . '/cart.php');
+    }
+
+    $deliveryType = $_POST['deliveryType'] ?? 'standard';
+    $paymentMethod = $_POST['paymentMethod'] ?? 'pay_on_delivery';
+    $firstName = trim((string) ($_POST['firstName'] ?? ''));
+    $lastName = trim((string) ($_POST['lastName'] ?? ''));
+    $email = trim((string) ($_POST['email'] ?? ''));
+    $phone = trim((string) ($_POST['phone'] ?? ''));
+    $address = trim((string) ($_POST['address'] ?? ''));
+    $city = trim((string) ($_POST['city'] ?? ''));
+    $postalCode = trim((string) ($_POST['postalCode'] ?? ''));
+    $country = trim((string) ($_POST['country'] ?? ''));
+
+    $totals = get_cart_totals();
+    $items = $totals['items'];
+    $subtotal = (float) $totals['subtotal'];
+    $shipping = (float) $totals['shipping'];
+    $total = (float) $totals['total'];
+
+    if ($deliveryType === 'standard') {
+        $shipping = 5.0;
+    } elseif ($deliveryType === 'express') {
+        $shipping = 15.0;
+    } else {
+        $shipping = 0.0;
+    }
+    $total = $subtotal + $shipping;
+
+    if ($firstName === '' || $lastName === '' || $email === '' || $address === '' || $city === '' || $postalCode === '' || $country === '') {
+        $formError = 'Please complete all required checkout fields.';
+    } else {
+        $db = get_db_connection();
+        try {
+            $db->beginTransaction();
+            $firstProductId = $items[0]['id'] ?? '';
+            $stmt = $db->prepare('INSERT INTO orders (order_number, customer_id, total_amount, status, payment_method, payment_status, delivery_type, notes) VALUES (:order_number, :customer_id, :total_amount, :status, :payment_method, :payment_status, :delivery_type, :notes)');
+            $orderId = 0;
+            $orderId = (int) $db->query('SELECT COALESCE(MAX(order_id), 0) + 1 FROM orders')->fetchColumn();
+            $orderNumber = generate_order_number($deliveryType, $firstProductId, $orderId);
+            $stmt->execute([
+                ':order_number' => $orderNumber,
+                ':customer_id' => $customerId,
+                ':total_amount' => number_format($total, 2, '.', ''),
+                ':status' => 'pending',
+                ':payment_method' => in_array($paymentMethod, ['credit_card', 'cheque', 'vpn', 'pay_on_delivery'], true) ? $paymentMethod : 'pay_on_delivery',
+                ':payment_status' => 'pending',
+                ':delivery_type' => in_array($deliveryType, ['standard', 'express', 'pickup'], true) ? $deliveryType : 'standard',
+                ':notes' => 'Checkout placed by authenticated customer.'
+            ]);
+            $insertedOrderId = (int) $db->lastInsertId();
+
+            foreach ($items as $item) {
+                $product = get_product_by_id($item['id']);
+                if ($product === null) {
+                    throw new Exception('One or more products are unavailable.');
+                }
+
+                $productId = (int) ($product['product_id'] ?? 0);
+                $qty = max(1, (int) $item['quantity']);
+                $db->prepare('INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (:order_id, :product_id, :quantity, :unit_price)')->execute([
+                    ':order_id' => $insertedOrderId,
+                    ':product_id' => $productId,
+                    ':quantity' => $qty,
+                    ':unit_price' => number_format((float) $item['price'], 2, '.', ''),
+                ]);
+
+                $stmtStock = $db->prepare('UPDATE products SET stock = stock - :qty WHERE product_id = :product_id AND stock >= :qty');
+                $stmtStock->execute([':qty' => $qty, ':product_id' => $productId]);
+                if ($stmtStock->rowCount() !== 1) {
+                    throw new Exception('Stock validation failed for one or more items.');
+                }
+            }
+
+            $db->commit();
+            clear_cart();
+            $_SESSION['order_success'] = 'Order placed successfully. Order number: ' . $orderNumber;
+            redirect_to($basePath . '/customer/orders.php');
+        } catch (Exception $e) {
+            $db->rollBack();
+            $formError = 'Your order could not be created. Please review your cart and try again.';
+        }
+    }
+}
+
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 
-// Mock Cart Data for Checkout Summary
-$cartItems = [
-    [
-        'id' => 'ART1001',
-        'name' => 'Lavender Dream Journal',
-        'price' => 24.00,
-        'quantity' => 2,
-        'image' => $basePath . '/assets/images/stationery.svg'
-    ],
-    [
-        'id' => 'ART1013',
-        'name' => 'Rose Gold Pen Set Trio',
-        'price' => 18.50,
-        'quantity' => 1,
-        'image' => $basePath . '/assets/images/stationery.svg'
-    ]
-];
-
-$subtotal = 0;
-foreach ($cartItems as $item) {
-    $subtotal += ($item['price'] * $item['quantity']);
-}
-$shipping = 5.00; // Default Mock Delivery Charge
+$cartTotals = get_cart_totals();
+$cartItems = $cartTotals['items'];
+$subtotal = (float) $cartTotals['subtotal'];
+$shipping = !empty($cartItems) ? ((isset($_POST['deliveryType']) && $_POST['deliveryType'] === 'express') ? 15.0 : ((isset($_POST['deliveryType']) && $_POST['deliveryType'] === 'pickup') ? 0.0 : 5.0)) : 0.0;
 $total = $subtotal + $shipping;
+$formError = $formError ?? null;
 ?>
 
 <style>
@@ -408,7 +490,10 @@ $total = $subtotal + $shipping;
         <div class="checkout-layout">
             <!-- Checkout Form (Left) -->
             <div class="checkout-form-column">
-                <form action="#" method="POST" id="mockCheckoutForm">
+                <?php if (!empty($formError)): ?>
+                    <div class="error-box"><?= htmlspecialchars($formError, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
+                <form action="<?= $basePath ?>/checkout.php" method="POST" id="checkoutForm">
                     
                     <!-- 1. Customer Information -->
                     <section class="checkout-section">
@@ -416,21 +501,21 @@ $total = $subtotal + $shipping;
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="firstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="firstName" name="firstName" class="form-input" required placeholder="Jane">
+                                <input type="text" id="firstName" name="firstName" class="form-input" required placeholder="Jane" value="<?= htmlspecialchars($_POST['firstName'] ?? current_user()['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="lastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="lastName" name="lastName" class="form-input" required placeholder="Doe">
+                                <input type="text" id="lastName" name="lastName" class="form-input" required placeholder="Doe" value="<?= htmlspecialchars($_POST['lastName'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="email">Email Address <span class="required">*</span></label>
-                                <input type="email" id="email" name="email" class="form-input" required placeholder="jane@example.com">
+                                <input type="email" id="email" name="email" class="form-input" required placeholder="jane@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 000-0000">
+                                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 000-0000" value="<?= htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                     </section>
@@ -440,26 +525,26 @@ $total = $subtotal + $shipping;
                         <h2 class="checkout-section-title">2. Delivery Information</h2>
                         <div class="form-group">
                             <label for="address">Street Address <span class="required">*</span></label>
-                            <textarea id="address" name="address" class="form-textarea" required rows="3" placeholder="123 Shopping Avenue, Suite 100"></textarea>
+                            <textarea id="address" name="address" class="form-textarea" required rows="3" placeholder="123 Shopping Avenue, Suite 100"><?= htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City <span class="required">*</span></label>
-                                <input type="text" id="city" name="city" class="form-input" required placeholder="Metropolis">
+                                <input type="text" id="city" name="city" class="form-input" required placeholder="Metropolis" value="<?= htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="postalCode">Postal Code <span class="required">*</span></label>
-                                <input type="text" id="postalCode" name="postalCode" class="form-input" required placeholder="10001">
+                                <input type="text" id="postalCode" name="postalCode" class="form-input" required placeholder="10001" value="<?= htmlspecialchars($_POST['postalCode'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="country">Country <span class="required">*</span></label>
                             <select id="country" name="country" class="form-select" required>
-                                <option value="" disabled selected>Select Country</option>
-                                <option value="US">United States</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="CA">Canada</option>
-                                <option value="PK">Pakistan</option>
+                                <option value="" disabled <?= empty($_POST['country'] ?? '') ? 'selected' : '' ?>>Select Country</option>
+                                <option value="US" <?= (($_POST['country'] ?? '') === 'US') ? 'selected' : '' ?>>United States</option>
+                                <option value="UK" <?= (($_POST['country'] ?? '') === 'UK') ? 'selected' : '' ?>>United Kingdom</option>
+                                <option value="CA" <?= (($_POST['country'] ?? '') === 'CA') ? 'selected' : '' ?>>Canada</option>
+                                <option value="PK" <?= (($_POST['country'] ?? '') === 'PK') ? 'selected' : '' ?>>Pakistan</option>
                             </select>
                         </div>
                     </section>
@@ -557,7 +642,7 @@ $total = $subtotal + $shipping;
                         <span id="totalCostDisplay">$<?= number_format($total, 2) ?></span>
                     </div>
                     
-                    <button type="submit" form="mockCheckoutForm" class="proceed-checkout-btn">Place Order</button>
+                    <button type="submit" form="checkoutForm" class="proceed-checkout-btn">Place Order</button>
                     
                     <div class="secure-checkout-badge">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -595,22 +680,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Mock Form Submission
-    const checkoutForm = document.getElementById('mockCheckoutForm');
-    checkoutForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent actual submission for now
-        
-        // Simple UI feedback
-        const btn = this.querySelector('button[type="submit"]') || document.querySelector('.proceed-checkout-btn');
-        const originalText = btn.textContent;
-        btn.textContent = 'Processing...';
-        btn.disabled = true;
-        
-        setTimeout(() => {
-            alert("Order Placed Successfully! (Mock Frontend Simulation)");
-            btn.textContent = originalText;
-            btn.disabled = false;
-        }, 800);
-    });
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function() {
+            const btn = this.querySelector('button[type="submit"]') || document.querySelector('.proceed-checkout-btn');
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = 'Processing...';
+                btn.disabled = true;
+                btn.dataset.originalText = originalText;
+            }
+        });
+    }
 });
 </script>
 

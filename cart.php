@@ -1,47 +1,59 @@
 <?php
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle = 'Your Cart - Arts';
 $basePath = '/Shopping%20Cart';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    $productId = $_POST['product_id'] ?? null;
+    $quantity = isset($_POST['quantity']) ? max(1, (int) $_POST['quantity']) : 1;
+
+    if ($action === 'add' && $productId !== null) {
+        $result = add_to_cart($productId, $quantity);
+        if ($result['success']) {
+            $_SESSION['cart_notice'] = $result['message'];
+        } else {
+            $_SESSION['cart_error'] = $result['message'];
+        }
+        header('Location: ' . $basePath . '/cart.php');
+        exit;
+    }
+
+    if ($action === 'update' && $productId !== null) {
+        $result = update_cart_quantity($productId, $quantity);
+        $_SESSION['cart_notice'] = $result['success'] ? 'Cart updated.' : $result['message'];
+        header('Location: ' . $basePath . '/cart.php');
+        exit;
+    }
+
+    if ($action === 'remove' && $productId !== null) {
+        remove_from_cart($productId);
+        $_SESSION['cart_notice'] = 'Item removed from cart.';
+        header('Location: ' . $basePath . '/cart.php');
+        exit;
+    }
+
+    if ($action === 'clear') {
+        clear_cart();
+        $_SESSION['cart_notice'] = 'Cart cleared.';
+        header('Location: ' . $basePath . '/cart.php');
+        exit;
+    }
+}
+
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 
-// Mock Cart Data
-// We can use a query parameter ?empty=1 to simulate the empty state
-$isEmpty = isset($_GET['empty']) && $_GET['empty'] == '1';
-
-$cartItems = [];
-
-if (!$isEmpty) {
-    $cartItems = [
-        [
-            'id' => 'ART1001',
-            'name' => 'Lavender Dream Journal',
-            'price' => 24.00,
-            'quantity' => 2,
-            'image' => $basePath . '/assets/images/stationery.svg'
-        ],
-        [
-            'id' => 'ART1004',
-            'name' => 'Ceramic Gift Box',
-            'price' => 28.00,
-            'quantity' => 1,
-            'image' => $basePath . '/assets/images/gifts.svg'
-        ],
-        [
-            'id' => 'ART1013',
-            'name' => 'Rose Gold Pen Set Trio',
-            'price' => 18.50,
-            'quantity' => 1,
-            'image' => $basePath . '/assets/images/stationery.svg'
-        ]
-    ];
-}
-
-$subtotal = 0;
-foreach ($cartItems as $item) {
-    $subtotal += ($item['price'] * $item['quantity']);
-}
-$shipping = ($subtotal > 50 || $subtotal == 0) ? 0 : 5.00;
-$total = $subtotal + $shipping;
+$totals = get_cart_totals();
+$cartItems = $totals['items'];
+$subtotal = (float) $totals['subtotal'];
+$shipping = (float) $totals['shipping'];
+$total = (float) $totals['total'];
+$cartNotice = $_SESSION['cart_notice'] ?? null;
+$cartError = $_SESSION['cart_error'] ?? null;
+unset($_SESSION['cart_notice'], $_SESSION['cart_error']);
 ?>
 
 <style>
@@ -331,9 +343,23 @@ $total = $subtotal + $shipping;
     color: var(--brand-primary);
 }
 
-.cart-summary-column {
-    animation: fadeInUp 0.6s ease-out 0.2s both;
-}
+    .alert-box, .error-box {
+        margin-bottom: 20px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+    }
+
+    .alert-box {
+        background: rgba(76,175,80,0.08);
+        color: #1b5e20;
+    }
+
+    .error-box {
+        background: rgba(229,57,53,0.08);
+        color: #8a1c1c;
+    }
 
 .order-summary-card {
     background: rgba(255, 255, 255, 0.9);
@@ -437,6 +463,13 @@ $total = $subtotal + $shipping;
 <main class="cart-page">
     <div class="container">
         <h1 class="cart-page-title">Your Shopping Cart</h1>
+
+        <?php if ($cartNotice): ?>
+            <div class="alert-box"><?= htmlspecialchars($cartNotice, ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
+        <?php if ($cartError): ?>
+            <div class="error-box"><?= htmlspecialchars($cartError, ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
         
         <?php if (empty($cartItems)): ?>
             <div class="cart-empty-state">
@@ -481,17 +514,25 @@ $total = $subtotal + $shipping;
                                     $<?= number_format($item['price'], 2) ?>
                                 </div>
                                 <div class="col-qty">
-                                    <div class="quantity-selector cart-qty">
-                                        <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">−</button>
-                                        <input type="number" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="99" aria-label="Product quantity">
-                                        <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
-                                    </div>
+                                    <form method="post" action="<?= $basePath ?>/cart.php" class="cart-qty-form">
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="product_id" value="<?= htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <div class="quantity-selector cart-qty">
+                                            <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">−</button>
+                                            <input type="number" name="quantity" class="qty-input" value="<?= $item['quantity'] ?>" min="1" max="99" aria-label="Product quantity">
+                                            <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
+                                        </div>
+                                    </form>
                                 </div>
                                 <div class="col-subtotal">
                                     <span class="subtotal-val">$<?= number_format($itemSubtotal, 2) ?></span>
                                 </div>
                                 <div class="col-action">
-                                    <button type="button" class="cart-remove-btn" aria-label="Remove item" title="Remove item">×</button>
+                                    <form method="post" action="<?= $basePath ?>/cart.php" style="display:inline;">
+                                        <input type="hidden" name="action" value="remove">
+                                        <input type="hidden" name="product_id" value="<?= htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <button type="submit" class="cart-remove-btn" aria-label="Remove item" title="Remove item">×</button>
+                                    </form>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -530,47 +571,35 @@ $total = $subtotal + $shipping;
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Basic frontend-only interactions for mock presentation
-    
-    // Quantity adjustments
-    const qtyWrappers = document.querySelectorAll('.cart-qty');
-    qtyWrappers.forEach(wrapper => {
-        const input = wrapper.querySelector('.qty-input');
-        const btnMinus = wrapper.querySelector('.qty-minus');
-        const btnPlus = wrapper.querySelector('.qty-plus');
-        
+    const qtyForms = document.querySelectorAll('.cart-qty-form');
+    qtyForms.forEach(form => {
+        const input = form.querySelector('.qty-input');
+        const btnMinus = form.querySelector('.qty-minus');
+        const btnPlus = form.querySelector('.qty-plus');
+
+        if (!input || !btnMinus || !btnPlus) return;
+
         btnMinus.addEventListener('click', () => {
             let val = parseInt(input.value, 10) || 1;
             if (val > 1) {
                 input.value = val - 1;
             }
+            form.submit();
         });
-        
+
         btnPlus.addEventListener('click', () => {
             let val = parseInt(input.value, 10) || 1;
             if (val < 99) {
                 input.value = val + 1;
             }
+            form.submit();
         });
-    });
 
-    // Remove item simulation
-    const removeBtns = document.querySelectorAll('.cart-remove-btn');
-    removeBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            const itemRow = e.target.closest('.cart-item');
-            if (itemRow) {
-                itemRow.style.opacity = '0';
-                itemRow.style.transform = 'scale(0.95)';
-                itemRow.style.transition = 'all 0.3s ease';
-                setTimeout(() => {
-                    itemRow.remove();
-                    // If no items remain visually, redirect to empty state.
-                    if (document.querySelectorAll('.cart-item').length === 0) {
-                        window.location.href = '?empty=1';
-                    }
-                }, 300);
+        input.addEventListener('change', () => {
+            if (parseInt(input.value, 10) < 1) {
+                input.value = 1;
             }
+            form.submit();
         });
     });
 });

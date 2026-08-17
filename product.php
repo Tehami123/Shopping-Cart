@@ -451,17 +451,19 @@ for ($i = 0; $i < 5; $i++) {
                     </ul>
                 </div>
 
-                <div class="product-actions">
+                <form method="post" action="<?= $basePath ?>/cart.php" class="product-actions" style="display:flex; align-items:center; gap:16px;">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="product_id" value="<?= htmlspecialchars((string) ($product['id'] ?? $product['full_product_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                     <div class="quantity-selector">
                         <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">−</button>
-                        <input type="number" class="qty-input" value="1" min="1" max="99" aria-label="Product quantity">
+                        <input type="number" name="quantity" class="qty-input" value="1" min="1" max="99" aria-label="Product quantity">
                         <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
                     </div>
 
-                    <button type="button" class="add-to-cart-btn" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>
+                    <button type="submit" class="add-to-cart-btn" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>
                         Add to Cart
                     </button>
-                </div>
+                </form>
 
                 <div class="product-secondary-actions">
                     <button type="button" class="wishlist-text-btn">♡ Add to Wishlist</button>

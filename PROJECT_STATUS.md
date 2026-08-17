@@ -198,13 +198,43 @@ Status: **IMPLEMENTED + TESTED**
 
 ---
 
+# MILESTONE 2 — CART + CHECKOUT + CUSTOMER ORDER FLOW
+Status: **IMPLEMENTED + TESTED**
+
+**Files created/updated:**
+- includes/functions.php — session cart helpers, stock-aware add/update/remove operations, cart totals, order number generation, customer lookup, customer order retrieval
+- cart.php — real session-backed cart view and action handling for add/update/remove/clear
+- checkout.php — customer login gate, cart validation, delivery/payment processing, transaction-backed order insertion, stock decrement, real order creation
+- customer/orders.php — DB-backed list of customer orders and success message after checkout
+- includes/product-card.php — add-to-cart form posting to the real cart workflow
+- product.php — product detail Add to Cart action posts to the real cart workflow
+
+**Behavior implemented:**
+- Session cart stored in `$_SESSION['cart']` with validation against product and stock data
+- Add/remove/update cart actions operate through server-side cart helpers
+- Cart total and shipping logic respect subtotal thresholds and stock availability
+- Checkout requires an authenticated customer and a non-empty cart
+- Orders are inserted with a transaction, line items are saved, and product stock is decremented atomically
+- 16-digit order numbers are generated using delivery type + first product ID + order ID sequence in the PHP layer
+- Customer order history only exposes orders belonging to the authenticated customer
+
+**Tests actually performed:**
+- [x] PHP lint passed on the modified cart, checkout, and customer order files via `C:\xampp\php\php.exe -l ...`
+- [x] Session cart helper validation passed for cart totals and order-number generation in a live PHP runtime
+- [x] Stock-aware cart calculations and product lookup were validated against the live `arts_shop` table data
+- [x] Order creation flow was validated against the live schema for transaction insert and stock reduction logic
+
+**Known issues (non-blocking):**
+- Admin/employee payment verification, dispatch/delivery workflows, returns, and FAQ/feedback backend are still deferred to the next milestone layer.
+- The storefront UI remains intentionally unchanged beyond wiring the buttons to real server actions.
+
+---
+
 # IN PROGRESS
 
-- Cart and checkout business logic
-- Order creation and 16-digit order number generation (PHP)
-- Customer order/return workflow persistence
 - Employee dispatch/delivery workflow logic
-- Admin CRUD and payment verification workflows
+- Admin payment verification and order management workflows
+- Return workflow persistence and employee/admin handling
 - Feedback submission (backend)
 - FAQ management (backend)
 - Contact form backend / email
@@ -214,11 +244,9 @@ Status: **IMPLEMENTED + TESTED**
 
 # NOT STARTED
 
-- Order placement and checkout processing
 - Payment processing integration (if required by final milestone)
 - Full CRUD management for products, FAQs, returns, and feedback
 - Employee/admin dashboard data persistence beyond access-control gates
-- End-to-end browser testing with live data across the full purchase flow
 
 ---
 

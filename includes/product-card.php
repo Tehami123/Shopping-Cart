@@ -55,7 +55,12 @@ function renderProductCard(array $product): void {
                         <span class="old-price"><?= htmlspecialchars($product['oldPrice'], ENT_QUOTES, 'UTF-8') ?></span>
                     <?php endif; ?>
                 </div>
-                <button type="button" class="<?= $cartBtnClass ?>" aria-label="Add to cart" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>🛒</button>
+                <form method="post" action="<?= $basePath ?>/cart.php" style="display:inline;">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="product_id" value="<?= htmlspecialchars((string) ($product['id'] ?? $product['full_product_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="<?= $cartBtnClass ?>" aria-label="Add to cart" <?= $isOutOfStock ? 'disabled aria-disabled="true"' : '' ?>>🛒</button>
+                </form>
             </div>
         </div>
     </article>

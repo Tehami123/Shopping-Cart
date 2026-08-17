@@ -208,3 +208,241 @@ function format_product_id(string $code, string $number): string
 {
     return strtoupper(trim($code)) . str_pad(trim($number), 5, '0', STR_PAD_LEFT);
 }
+
+function ensure_cart_session(): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_set_cookie_params([
+            'lifetime' => 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+        session_start();
+    }
+}
+
+function get_cart(): array
+{
+    ensure_cart_session();
+    return $_SESSION['cart'] ?? [];
+}
+
+function save_cart(array $cart): void
+{
+    ensure_cart_session();
+    $_SESSION['cart'] = $cart;
+}
+
+function normalize_cart_product_id($productId): ?string
+{
+    $raw = trim((string) $productId);
+    if ($raw === '') {
+        return null;
+    }
+
+    $lookup = legacy_art_id_to_product_lookup($raw);
+    if ($lookup !== null) {
+        return (string) $lookup['full_product_id'];
+    }
+
+    if (preg_match('/^\d{7}$/', $raw) === 1) {
+        return $raw;
+    }
+
+    if (preg_match('/^\d+$/', $raw) === 1) {
+        $numeric = (int) $raw;
+        $product = legacy_art_id_to_product_lookup((string) $numeric);
+        if ($product !== null) {
+            return (string) $product['full_product_id'];
+        }
+    }
+
+    return null;
+}
+
+function add_to_cart($productId, int $quantity = 1): array
+{
+    $normalizedId = normalize_cart_product_id($productId);
+    if ($normalizedId === null) {
+        return ['success' => false, 'message' => 'Product could not be found.'];
+    }
+
+    $product = get_product_by_id($normalizedId);
+    if ($product === null) {
+        return ['success' => false, 'message' => 'Product could not be found.'];
+    }
+
+    $availableStock = (int) ($product['stock'] ?? 0);
+    $requestedQty = max(1, $quantity);
+    if ($availableStock <= 0) {
+        return ['success' => false, 'message' => 'This product is currently out of stock.'];
+    }
+
+    if ($requestedQty > $availableStock) {
+        return ['success' => false, 'message' => 'Only ' . $availableStock . ' item(s) are available.'];
+    }
+
+    $cart = get_cart();
+    $existingQty = (int) ($cart[$normalizedId]['quantity'] ?? 0);
+    $newQty = $existingQty + $requestedQty;
+    if ($newQty > $availableStock) {
+        $newQty = $availableStock;
+    }
+
+    $cart[$normalizedId] = [
+        'product_id' => $normalizedId,
+        'quantity' => $newQty,
+    ];
+
+    save_cart($cart);
+
+    return ['success' => true, 'message' => 'Product added to cart.', 'quantity' => $newQty];
+}
+
+function update_cart_quantity($productId, int $quantity): array
+{
+    $normalizedId = normalize_cart_product_id($productId);
+    if ($normalizedId === null) {
+        return ['success' => false, 'message' => 'Product could not be found.'];
+    }
+
+    $product = get_product_by_id($normalizedId);
+    if ($product === null) {
+        return ['success' => false, 'message' => 'Product could not be found.'];
+    }
+
+    $availableStock = (int) ($product['stock'] ?? 0);
+    $newQty = max(1, $quantity);
+    if ($newQty > $availableStock) {
+        $newQty = $availableStock;
+    }
+
+    $cart = get_cart();
+    if ($availableStock <= 0) {
+        unset($cart[$normalizedId]);
+        save_cart($cart);
+        return ['success' => false, 'message' => 'This product is currently out of stock.'];
+    }
+
+    $cart[$normalizedId] = [
+        'product_id' => $normalizedId,
+        'quantity' => $newQty,
+    ];
+
+    save_cart($cart);
+
+    return ['success' => true, 'message' => 'Cart updated.', 'quantity' => $newQty];
+}
+
+function remove_from_cart($productId): void
+{
+    $normalizedId = normalize_cart_product_id($productId);
+    if ($normalizedId === null) {
+        return;
+    }
+
+    $cart = get_cart();
+    unset($cart[$normalizedId]);
+    save_cart($cart);
+}
+
+function clear_cart(): void
+{
+    save_cart([]);
+}
+
+function get_cart_items_with_details(): array
+{
+    $items = [];
+    foreach (get_cart() as $productId => $entry) {
+        $normalizedId = normalize_cart_product_id($productId);
+        if ($normalizedId === null) {
+            continue;
+        }
+
+        $product = get_product_by_id($normalizedId);
+        if ($product === null) {
+            continue;
+        }
+
+        $quantity = max(1, (int) ($entry['quantity'] ?? 1));
+        $stockLimit = (int) ($product['stock'] ?? 0);
+        if ($stockLimit <= 0) {
+            continue;
+        }
+        if ($quantity > $stockLimit) {
+            $quantity = $stockLimit;
+        }
+
+        $items[] = [
+            'id' => $normalizedId,
+            'product_id' => (int) ($product['product_id'] ?? 0),
+            'full_product_id' => $normalizedId,
+            'name' => $product['name'],
+            'price' => (float) ($product['price_numeric'] ?? 0),
+            'quantity' => $quantity,
+            'image' => $product['image_url'],
+            'stock' => $stockLimit,
+        ];
+    }
+
+    return $items;
+}
+
+function get_cart_totals(): array
+{
+    $items = get_cart_items_with_details();
+    $subtotal = 0.0;
+    foreach ($items as $item) {
+        $subtotal += ((float) $item['price']) * (int) $item['quantity'];
+    }
+
+    $shipping = ($subtotal > 0 && $subtotal < 50) ? 5.0 : 0.0;
+    $total = $subtotal + $shipping;
+
+    return [
+        'items' => $items,
+        'subtotal' => $subtotal,
+        'shipping' => $shipping,
+        'total' => $total,
+    ];
+}
+
+function generate_order_number(string $deliveryType, string $firstProductId, int $orderId): string
+{
+    $map = [
+        'standard' => '1',
+        'express' => '2',
+        'pickup' => '3',
+    ];
+
+    $deliveryDigit = $map[$deliveryType] ?? '1';
+    $normalizedProductId = normalize_cart_product_id($firstProductId) ?? $firstProductId;
+    $orderNumber = sprintf('%s%s%08d', $deliveryDigit, $normalizedProductId, $orderId);
+
+    return substr($orderNumber, 0, 16);
+}
+
+function get_customer_id_for_user(int $userId): ?int
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare('SELECT customer_id FROM customers WHERE user_id = :user_id LIMIT 1');
+    $stmt->execute([':user_id' => $userId]);
+    $row = $stmt->fetch();
+
+    return $row ? (int) $row['customer_id'] : null;
+}
+
+function get_customer_order_history(int $customerId): array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT order_id, order_number, order_date, total_amount, status, payment_method, payment_status, delivery_type FROM orders WHERE customer_id = :customer_id ORDER BY order_id DESC'
+    );
+    $stmt->execute([':customer_id' => $customerId]);
+
+    return $stmt->fetchAll();
+}

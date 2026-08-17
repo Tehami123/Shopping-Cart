@@ -1,39 +1,23 @@
 <?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
+require_once dirname(__DIR__) . '/config/database.php';
 
 $pageTitle = 'My Orders - Arts';
 $basePath = '/Shopping%20Cart';
+$customerId = get_customer_id_for_user((int) current_user_id());
+
+if ($customerId === null) {
+    redirect_to($basePath . '/auth/login.php');
+}
+
+$orders = get_customer_order_history($customerId);
+$orderSuccess = $_SESSION['order_success'] ?? null;
+unset($_SESSION['order_success']);
+
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
-
-// Mock Orders Data
-$mockOrders = [
-    [
-        'order_id' => '1120034500000001',
-        'date' => '15 Aug 2026',
-        'total' => 2450.00,
-        'payment' => 'Pending',
-        'status' => 'Processing',
-        'cancellable' => true
-    ],
-    [
-        'order_id' => '1120034500000002',
-        'date' => '02 Aug 2026',
-        'total' => 850.50,
-        'payment' => 'Paid',
-        'status' => 'Delivered',
-        'cancellable' => false
-    ],
-    [
-        'order_id' => '1120034500000003',
-        'date' => '18 Jul 2026',
-        'total' => 120.00,
-        'payment' => 'Refunded',
-        'status' => 'Cancelled',
-        'cancellable' => false
-    ]
-];
 ?>
 
 <style>
@@ -328,42 +312,48 @@ $mockOrders = [
             <!-- Main Content -->
             <div class="customer-content">
                 <h1 class="customer-page-title">My Orders</h1>
+
+                <?php if ($orderSuccess): ?>
+                    <div class="alert-box"><?= htmlspecialchars($orderSuccess, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
                 
                 <div class="orders-list">
-                    <?php foreach ($mockOrders as $order): ?>
-                        <div class="order-card">
-                            <div class="order-card-header">
-                                <div class="order-info-group">
-                                    <span class="label">Order Number</span>
-                                    <span class="value">#<?= $order['order_id'] ?></span>
-                                </div>
-                                <div class="order-info-group">
-                                    <span class="label">Date Placed</span>
-                                    <span class="value"><?= $order['date'] ?></span>
-                                </div>
-                                <div class="order-info-group">
-                                    <span class="label">Total Amount</span>
-                                    <span class="value">Rs. <?= number_format($order['total'], 2) ?></span>
-                                </div>
-                            </div>
-                            <div class="order-card-body">
-                                <div class="order-status-group">
-                                    <div class="status-badge payment-<?= strtolower($order['payment']) ?>">
-                                        Payment: <?= $order['payment'] ?>
+                    <?php if (empty($orders)): ?>
+                        <div class="empty-state">No orders yet. Start shopping to place your first order.</div>
+                    <?php else: ?>
+                        <?php foreach ($orders as $order): ?>
+                            <?php $payment = str_replace('_', ' ', $order['payment_status']); $status = str_replace('_', ' ', $order['status']); ?>
+                            <div class="order-card">
+                                <div class="order-card-header">
+                                    <div class="order-info-group">
+                                        <span class="label">Order Number</span>
+                                        <span class="value">#<?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></span>
                                     </div>
-                                    <div class="status-badge status-<?= strtolower($order['status']) ?>">
-                                        Status: <?= $order['status'] ?>
+                                    <div class="order-info-group">
+                                        <span class="label">Date Placed</span>
+                                        <span class="value"><?= date('d M Y', strtotime($order['order_date'])) ?></span>
+                                    </div>
+                                    <div class="order-info-group">
+                                        <span class="label">Total Amount</span>
+                                        <span class="value">$<?= number_format((float) $order['total_amount'], 2) ?></span>
                                     </div>
                                 </div>
-                                <div class="order-actions">
-                                    <button class="order-action-btn">View Details</button>
-                                    <?php if ($order['cancellable']): ?>
-                                        <button class="cancel-order-btn" onclick="alert('Order cancellation mock triggered.');">Cancel Order</button>
-                                    <?php endif; ?>
+                                <div class="order-card-body">
+                                    <div class="order-status-group">
+                                        <div class="status-badge payment-<?= strtolower($payment) ?>">
+                                            Payment: <?= ucfirst($payment) ?>
+                                        </div>
+                                        <div class="status-badge status-<?= strtolower($status) ?>">
+                                            Status: <?= ucfirst($status) ?>
+                                        </div>
+                                    </div>
+                                    <div class="order-actions">
+                                        <button class="order-action-btn" type="button">View Details</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
                 
             </div>
