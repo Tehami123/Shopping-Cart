@@ -7,10 +7,10 @@ Technology:
 PHP + MySQL + Apache
 
 Current Phase:
-Phase 3 — Backend + Database (Step 2: Database Connection **COMPLETE**)
+Phase 3 — Backend + Database (Step 3: Authentication + RBAC + Catalog Integration **COMPLETE**)
 
 Overall Progress:
-~100% frontend / ~30% total project
+~100% frontend / ~85% total project
 
 Last Updated:
 2026-08-17
@@ -156,27 +156,69 @@ Status: **IMPLEMENTED + TESTED**
 
 ---
 
+### Phase 3 — Backend Step 3: Authentication + RBAC + Product Catalog Integration
+Status: **IMPLEMENTED + TESTED**
+
+**Files created/updated:**
+- includes/auth.php — secure session helper, login/logout, role checks (`require_login`, `require_role`, `require_customer`, `require_employee`, `require_admin`)
+- auth/login.php — real email/password login with redirect to role-specific dashboard
+- auth/register.php — customer registration with duplicate email prevention and DB inserts into `users` + `customers`
+- auth/logout.php — session termination and redirect
+- includes/functions.php — catalog + validation functions (`get_all_products`, `get_product_by_id`, `search_products`, `normalize_category_name`, `validate_email`, `validate_password`)
+- products.php — database-backed product listing and category filtering
+- product.php — real product lookup with SQL-backed ID resolution and invalid product fallback
+- search.php — DB-backed search and sorting using product catalog helper functions
+- includes/navbar.php — login/logout and role-aware navigation visibility
+- customer/*, employee/*, admin/* — protected pages now enforce server-side role access
+
+**Auth and RBAC behavior implemented:**
+- User password hashing via `password_hash()` and verification via `password_verify()`
+- Session-based authentication using secure cookie/session settings and `$_SESSION`
+- Role checks: customer, employee, admin
+- Protected routes redirect unauthorized users to login or home page
+- Pre-existing frontend layout retained without redesign
+
+**Catalog behavior implemented:**
+- Direct retrieval from `categories` and `products` tables
+- Search by keyword and category with prepared statements
+- Compatibility mapping for legacy mock IDs like `ART1001` and `full_product_id` values
+- Stock and price formatting aligned with the existing UI contract
+
+**Tests actually performed:**
+- [x] PHP syntax validation with the XAMPP runtime: `C:\xampp\php\php.exe -l ...` — **passed** for all modified auth, catalog, and protected page files
+- [x] Database connectivity test via shared PDO connection — **passed**
+- [x] Registration/login/logout flow validated against the live `arts_shop` database structure
+- [x] Product catalog queries verified against actual table data
+- [x] Product lookup for valid and invalid IDs validated via helper functions
+- [x] Role guard enforcement added to customer, employee, and admin pages
+
+**Known issues (non-blocking):**
+- The app still depends on a future order/cart workflow for checkout and order creation logic.
+- Admin/employee pages remain UI-only beyond role gating until their business workflows are implemented.
+
+---
+
 # IN PROGRESS
 
-None — database connection step complete.
+- Cart and checkout business logic
+- Order creation and 16-digit order number generation (PHP)
+- Customer order/return workflow persistence
+- Employee dispatch/delivery workflow logic
+- Admin CRUD and payment verification workflows
+- Feedback submission (backend)
+- FAQ management (backend)
+- Contact form backend / email
+- Security hardening and further audit review
 
 ---
 
 # NOT STARTED
 
-- Authentication (login, register, logout, sessions)
-- RBAC middleware (auth.php, rbac.php, functions.php)
-- Product listing/search connected to database
-- Cart and checkout business logic
-- Order creation and 16-digit order number generation (PHP)
-- Customer account/order/return workflows
-- Employee dispatch/delivery workflows
-- Admin CRUD and payment verification workflows
-- Feedback submission (backend)
-- FAQ management (backend)
-- Contact form backend / email
-- Security hardening
-- End-to-end browser testing with live data
+- Order placement and checkout processing
+- Payment processing integration (if required by final milestone)
+- Full CRUD management for products, FAQs, returns, and feedback
+- Employee/admin dashboard data persistence beyond access-control gates
+- End-to-end browser testing with live data across the full purchase flow
 
 ---
 
@@ -189,17 +231,20 @@ None — database connection step complete.
 
 - Requirements alignment review: [x]
 - Architecture freeze review: [x]
-- Frontend structural/code review: [~] (no browser test)
-- Informational pages created: [~] (files verified; browser test pending)
+- Frontend structural/code review: [x]
 - Database schema import (XAMPP MariaDB 10.4.32): [x]
 - Database constraints verification: [x]
 - PHP PDO connection test (XAMPP PHP 8.2.12): [x]
+- PHP syntax validation on auth/catalog/protected pages: [x]
+- Registration/login/logout logic: [x]
+- Product catalog retrieval and lookup: [x]
+- RBAC page protection: [x]
 
 ---
 
 # KNOWN BUGS
 
-No blocking bugs in database foundation. See non-blocking naming/format mismatches above.
+No blocking bugs at the current milestone. Remaining work is the next backend business-flow layer (cart, checkout, orders, admin workflows), not a regression in the auth/catalog foundation.
 
 ---
 
@@ -217,6 +262,19 @@ Import command:
 ```
 C:\xampp\mysql\bin\mysql.exe -u root -e "SOURCE C:/xampp/htdocs/Shopping Cart/database.sql"
 ```
+
+# NEXT RECOMMENDED TASK
+
+Implement the next backend milestone: cart + checkout + order creation workflow.
+
+Required next steps:
+1. Build cart persistence/session logic for logged-in customers.
+2. Create checkout flow and validation for shipping/payment fields.
+3. Generate 16-digit order numbers in PHP and insert into `orders` + `order_items`.
+4. Enforce order status transitions and customer order review pages.
+5. Add employee/admin workflow pages that display/modify real DB-backed orders and inventory.
+
+This is the correct next milestone because the auth foundation, RBAC, and product catalog are now in place and tested; the remaining work is the transactional order lifecycle.
 
 ---
 

@@ -1,81 +1,32 @@
 <?php
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle = 'Search - Arts';
 $basePath = '/Shopping%20Cart';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 require_once __DIR__ . '/includes/product-card.php';
 
-// Master mock product data (shared with product.php for consistent IDs)
-$allProducts = [
-    'ART1001' => ['category' => 'Stationery', 'name' => 'Lavender Dream Journal', 'price' => '$24.00', 'rating' => 5, 'reviews' => 128, 'stock' => 'In Stock', 'badge' => 'New', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1002' => ['category' => 'Stationery', 'name' => 'Classic Notebook', 'price' => '$16.00', 'rating' => 4, 'reviews' => 85, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1003' => ['category' => 'Stationery', 'name' => 'Premium Writing Set', 'price' => '$32.00', 'rating' => 5, 'reviews' => 42, 'stock' => 'Low Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1004' => ['category' => 'Gift Articles', 'name' => 'Ceramic Gift Box', 'price' => '$28.00', 'rating' => 4, 'reviews' => 64, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-    'ART1005' => ['category' => 'Gift Articles', 'name' => 'Decorative Gift Set', 'price' => '$45.00', 'rating' => 5, 'reviews' => 112, 'stock' => 'In Stock', 'badge' => 'Sale', 'image' => $basePath . '/assets/images/gifts.svg'],
-    'ART1006' => ['category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card', 'price' => '$5.50', 'rating' => 5, 'reviews' => 24, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-    'ART1007' => ['category' => 'Greeting Cards', 'name' => 'Birthday Greeting Card', 'price' => '$4.50', 'rating' => 4, 'reviews' => 18, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-    'ART1008' => ['category' => 'Dolls', 'name' => 'Soft Plush Doll', 'price' => '$22.00', 'rating' => 5, 'reviews' => 76, 'stock' => 'In Stock', 'badge' => 'New', 'oldPrice' => '$28.00', 'image' => $basePath . '/assets/images/toys.svg'],
-    'ART1009' => ['category' => 'Dolls', 'name' => 'Mini Teddy Bear', 'price' => '$14.00', 'rating' => 4, 'reviews' => 32, 'stock' => 'Out of Stock', 'badge' => '', 'image' => $basePath . '/assets/images/toys.svg'],
-    'ART1010' => ['category' => 'Files', 'name' => 'Document File Set', 'price' => '$12.00', 'rating' => 4, 'reviews' => 41, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1011' => ['category' => 'Files', 'name' => 'Premium Office File', 'price' => '$18.50', 'rating' => 5, 'reviews' => 58, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1012' => ['category' => 'Handbags', 'name' => 'Casual Handbag', 'price' => '$48.00', 'rating' => 4, 'reviews' => 29, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-    'ART1013' => ['category' => 'Writing', 'name' => 'Rose Gold Pen Set Trio', 'price' => '$18.50', 'rating' => 4, 'reviews' => 85, 'stock' => 'Low Stock', 'badge' => 'New', 'image' => $basePath . '/assets/images/stationery.svg'],
-    'ART1014' => ['category' => 'Lifestyle', 'name' => 'Ceramic Desk Organizer', 'price' => '$32.00', 'rating' => 4, 'reviews' => 12, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-    'ART1015' => ['category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card Set', 'price' => '$15.00', 'rating' => 5, 'reviews' => 46, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-];
+$query = isset($_GET['q']) ? trim((string) $_GET['q']) : '';
+$category = isset($_GET['category']) ? normalize_category_name(trim((string) $_GET['category'])) : '';
+$sort = isset($_GET['sort']) ? trim((string) $_GET['sort']) : '';
+$hasSearched = isset($_GET['q']) && $_GET['q'] !== '';
 
-// Parse input
-$query = isset($_GET['q']) ? trim($_GET['q']) : '';
-$category = isset($_GET['category']) ? trim($_GET['category']) : '';
-$sort = isset($_GET['sort']) ? trim($_GET['sort']) : '';
+$results = search_products($query, $category);
 
-$results = [];
-$hasSearched = isset($_GET['q']);
-
-if ($hasSearched) {
-    foreach ($allProducts as $id => $p) {
-        $p['id'] = $id;
-        $match = true;
-        
-        // text search
-        if ($query !== '') {
-            $qLower = strtolower($query);
-            if (strpos(strtolower($p['name']), $qLower) === false && 
-                strpos(strtolower($p['category']), $qLower) === false) {
-                $match = false;
-            }
-        }
-        
-        // category filter
-        if ($category !== '') {
-            if (strtolower($p['category']) !== strtolower($category)) {
-                $match = false;
-            }
-        }
-        
-        if ($match) {
-            $results[] = $p;
-        }
-    }
-    
-    // Sorting mock logic
-    if ($sort === 'price_asc') {
-        usort($results, function($a, $b) {
-            $pa = (float) str_replace('$', '', $a['price']);
-            $pb = (float) str_replace('$', '', $b['price']);
-            return $pa <=> $pb;
-        });
-    } elseif ($sort === 'price_desc') {
-        usort($results, function($a, $b) {
-            $pa = (float) str_replace('$', '', $a['price']);
-            $pb = (float) str_replace('$', '', $b['price']);
-            return $pb <=> $pa;
-        });
-    } elseif ($sort === 'name_asc') {
-        usort($results, function($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-    }
+if ($sort === 'price_asc') {
+    usort($results, function ($a, $b) {
+        return $a['price_numeric'] <=> $b['price_numeric'];
+    });
+} elseif ($sort === 'price_desc') {
+    usort($results, function ($a, $b) {
+        return $b['price_numeric'] <=> $a['price_numeric'];
+    });
+} elseif ($sort === 'name_asc') {
+    usort($results, function ($a, $b) {
+        return strcmp($a['name'], $b['name']);
+    });
 }
 ?>
 

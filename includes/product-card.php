@@ -1,14 +1,14 @@
 <?php
 function renderProductCard(array $product): void {
     global $basePath;
-    $id = htmlspecialchars($product['id'] ?? 'ART1001', ENT_QUOTES, 'UTF-8');
+    $id = htmlspecialchars($product['id'] ?? $product['full_product_id'] ?? '0100001', ENT_QUOTES, 'UTF-8');
     $badge = $product['badge'] ?? '';
     $category = htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8');
     $name = htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8');
-    $price = htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8');
+    $price = htmlspecialchars($product['price'] ?? format_currency((float) ($product['price_numeric'] ?? 0)), ENT_QUOTES, 'UTF-8');
     $rating = $product['rating'] ?? 0;
-    $stock = $product['stock'] ?? 'In Stock';
-    $image = htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8');
+    $stock = $product['stock_label'] ?? ($product['stock'] ?? 'In Stock');
+    $image = htmlspecialchars($product['image'] ?? $product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8');
     $wishlist = $product['wishlist'] ?? '♡';
     $badgeClass = (strtolower($badge) === 'new') ? 'card-badge badge-new' : 'card-badge';
     $newLabel = $badge ? '<span class="' . $badgeClass . '">' . htmlspecialchars($badge, ENT_QUOTES, 'UTF-8') . '</span>' : '';

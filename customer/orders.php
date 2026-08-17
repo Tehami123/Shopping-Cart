@@ -1,4 +1,7 @@
 <?php
+require_once dirname(__DIR__) . '/includes/auth.php';
+require_customer();
+
 $pageTitle = 'My Orders - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';

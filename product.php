@@ -1,48 +1,62 @@
 <?php
-$pageTitle = 'Lavender Dream Journal - Arts';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
+
+$pageTitle = 'Product - Arts';
 $basePath = '/Shopping%20Cart';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 require_once __DIR__ . '/includes/product-card.php';
 
-$requestedId = $_GET['id'] ?? 'ART1001';
+$requestedId = trim((string) ($_GET['id'] ?? ''));
+$product = null;
 
-// Master mock product data for the details page
-$allProducts = [
-    'ART1001' => ['category' => 'Stationery', 'name' => 'Lavender Dream Journal', 'price' => '$24.00', 'rating' => 5, 'reviews' => 128, 'stock' => 'In Stock', 'badge' => 'New', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "Capture your thoughts in our elegantly designed Lavender Dream Journal. Featuring a soft-touch hardcover, premium 120gsm dotted paper, and a lay-flat binding that makes writing a joy. Perfect for bullet journaling, daily reflections, or creative sketching.\n\nIncludes a matching ribbon bookmark and an expandable inner pocket.", 'features' => ['192 dotted pages', 'FSC-certified acid-free paper', 'Elastic closure band', 'Available in multiple soothing colors']],
-    'ART1002' => ['category' => 'Stationery', 'name' => 'Classic Notebook', 'price' => '$16.00', 'rating' => 4, 'reviews' => 85, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "A classic everyday notebook for all your notes.", 'features' => ['100 lined pages', 'Soft cover']],
-    'ART1003' => ['category' => 'Stationery', 'name' => 'Premium Writing Set', 'price' => '$32.00', 'rating' => 5, 'reviews' => 42, 'stock' => 'Low Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "The perfect gift for the writer in your life.", 'features' => ['3 pens', 'Leather case']],
-    'ART1004' => ['category' => 'Gift Articles', 'name' => 'Ceramic Gift Box', 'price' => '$28.00', 'rating' => 4, 'reviews' => 64, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg', 'description' => "Beautifully crafted ceramic gift box.", 'features' => ['Hand-painted', 'Secure lid']],
-    'ART1005' => ['category' => 'Gift Articles', 'name' => 'Decorative Gift Set', 'price' => '$45.00', 'rating' => 5, 'reviews' => 112, 'stock' => 'In Stock', 'badge' => 'Sale', 'image' => $basePath . '/assets/images/gifts.svg', 'description' => "A curated selection of decorative items.", 'features' => ['Gift wrapped', 'Includes card']],
-    'ART1006' => ['category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card', 'price' => '$5.50', 'rating' => 5, 'reviews' => 24, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg', 'description' => "Send a thoughtful message with our watercolor cards.", 'features' => ['Blank inside', 'Includes envelope']],
-    'ART1007' => ['category' => 'Greeting Cards', 'name' => 'Birthday Greeting Card', 'price' => '$4.50', 'rating' => 4, 'reviews' => 18, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg', 'description' => "Celebrate birthdays in style.", 'features' => ['Gold foil details', 'Premium paper']],
-    'ART1008' => ['category' => 'Dolls', 'name' => 'Soft Plush Doll', 'price' => '$22.00', 'rating' => 5, 'reviews' => 76, 'stock' => 'In Stock', 'badge' => 'New', 'oldPrice' => '$28.00', 'image' => $basePath . '/assets/images/toys.svg', 'description' => "A cuddly companion for all ages.", 'features' => ['Machine washable', 'Embroidered eyes']],
-    'ART1009' => ['category' => 'Dolls', 'name' => 'Mini Teddy Bear', 'price' => '$14.00', 'rating' => 4, 'reviews' => 32, 'stock' => 'Out of Stock', 'badge' => '', 'image' => $basePath . '/assets/images/toys.svg', 'description' => "A classic pocket-sized friend.", 'features' => ['Soft fur', 'Ribbon bow']],
-    'ART1010' => ['category' => 'Files', 'name' => 'Document File Set', 'price' => '$12.00', 'rating' => 4, 'reviews' => 41, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "Keep your papers organized.", 'features' => ['Set of 3', 'Label holders']],
-    'ART1011' => ['category' => 'Files', 'name' => 'Premium Office File', 'price' => '$18.50', 'rating' => 5, 'reviews' => 58, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "A sturdy file for important documents.", 'features' => ['Heavy duty rings', 'Leather-like finish']],
-    'ART1012' => ['category' => 'Handbags', 'name' => 'Casual Handbag', 'price' => '$48.00', 'rating' => 4, 'reviews' => 29, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg', 'description' => "Your new everyday carry.", 'features' => ['Adjustable strap', 'Inner zip pocket']],
-    'ART1013' => ['category' => 'Writing', 'name' => 'Rose Gold Pen Set Trio', 'price' => '$18.50', 'rating' => 4, 'reviews' => 85, 'stock' => 'Low Stock', 'badge' => 'New', 'image' => $basePath . '/assets/images/stationery.svg', 'description' => "Write in style.", 'features' => ['Black ink', 'Twist mechanism']],
-    'ART1014' => ['category' => 'Lifestyle', 'name' => 'Ceramic Desk Organizer', 'price' => '$32.00', 'rating' => 4, 'reviews' => 12, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg', 'description' => "Keep your desk tidy.", 'features' => ['3 compartments', 'Non-slip base']],
-    'ART1015' => ['category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card Set', 'price' => '$15.00', 'rating' => 5, 'reviews' => 46, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg', 'description' => "A set of beautiful cards.", 'features' => ['Set of 5', 'Matching envelopes']],
-];
-
-if (!isset($allProducts[$requestedId])) {
-    $requestedId = 'ART1001'; // Fallback
+if ($requestedId === '') {
+    $product = get_all_products()[0] ?? null;
+} else {
+    $product = get_product_by_id($requestedId);
 }
-$product = $allProducts[$requestedId];
-$product['id'] = $requestedId;
-$pageTitle = htmlspecialchars($product['name']) . ' - Arts';
 
-// Mock related products
-$relatedProducts = [
-    ['category' => 'Stationery', 'name' => 'Classic Notebook', 'price' => '$16.00', 'rating' => 4, 'reviews' => 85, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['category' => 'Stationery', 'name' => 'Premium Writing Set', 'price' => '$32.00', 'rating' => 5, 'reviews' => 42, 'stock' => 'Low Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['category' => 'Gift Articles', 'name' => 'Ceramic Gift Box', 'price' => '$28.00', 'rating' => 4, 'reviews' => 64, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-    ['category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card', 'price' => '$5.50', 'rating' => 5, 'reviews' => 24, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-];
+if ($product === null) {
+    http_response_code(404);
+    $product = [
+        'id' => '0000000',
+        'full_product_id' => '0000000',
+        'name' => 'Product not found',
+        'category' => 'Unavailable',
+        'description' => 'The requested product could not be found in the catalog.',
+        'price' => format_currency(0),
+        'price_numeric' => 0,
+        'stock' => 'Out of Stock',
+        'stock_count' => 0,
+        'image' => '/Shopping%20Cart/assets/images/stationery.svg',
+        'rating' => 0,
+        'reviews' => 0,
+        'badge' => '',
+        'features' => ['Please check the catalog and try another product.']
+    ];
+} else {
+    $product['id'] = $product['full_product_id'];
+    $product['category'] = $product['category_name'] ?? 'Uncategorized';
+    $product['image'] = $product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg';
+    $product['stock'] = normalize_product_stock_label((int) $product['stock_count']);
+    $product['badge'] = ((int) $product['stock_count'] > 0 && (int) $product['product_id'] % 3 === 1) ? 'New' : '';
+    $product['rating'] = min(5, max(3, 3 + ((int) $product['product_id'] % 3)));
+    $product['reviews'] = 30 + ((int) $product['product_id'] * 11) % 120;
+    $product['features'] = [
+        ($product['price_numeric'] > 20 ? 'Premium quality finish' : 'Everyday essentials'),
+        'Securely packed for delivery',
+        'Stock availability updated from the database'
+    ];
+    $pageTitle = htmlspecialchars($product['name']) . ' - Arts';
+}
 
-// Calculate stock class
-$stockLower = strtolower($product['stock']);
+$relatedProducts = get_all_products($product['category'] ?? null, null);
+if (count($relatedProducts) > 4) {
+    $relatedProducts = array_slice($relatedProducts, 0, 4);
+}
+
+$stockLower = strtolower((string) $product['stock']);
 $isOutOfStock = strpos($stockLower, 'out') !== false;
 $stockStatusClass = 'stock-in';
 if ($isOutOfStock) {
@@ -53,7 +67,7 @@ if ($isOutOfStock) {
 
 $stars = '';
 for ($i = 0; $i < 5; $i++) {
-    $stars .= $i < $product['rating'] ? '<span class="star filled">★</span>' : '<span class="star">★</span>';
+    $stars .= $i < ($product['rating'] ?? 0) ? '<span class="star filled">★</span>' : '<span class="star">★</span>';
 }
 ?>
 

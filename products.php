@@ -1,36 +1,27 @@
 <?php
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $pageTitle = 'Shop All Products';
 $basePath = '/Shopping%20Cart';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 require_once __DIR__ . '/includes/product-card.php';
 
-$categories = [
-    'All',
-    'Stationery',
-    'Gift Articles',
-    'Greeting Cards',
-    'Dolls',
-    'Files',
-    'Handbags',
-    'Wallets',
-    'Beauty Products'
-];
+$categoryFilter = $_GET['category'] ?? 'All';
+$searchTerm = trim((string) ($_GET['search'] ?? ''));
 
-$products = [
-    ['id' => 'ART1001', 'category' => 'Stationery', 'name' => 'Lavender Dream Journal', 'price' => '$24.00', 'rating' => 5, 'reviews' => 128, 'stock' => 'In Stock', 'badge' => 'New', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['id' => 'ART1002', 'category' => 'Stationery', 'name' => 'Classic Notebook', 'price' => '$16.00', 'rating' => 4, 'reviews' => 85, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['id' => 'ART1003', 'category' => 'Stationery', 'name' => 'Premium Writing Set', 'price' => '$32.00', 'rating' => 5, 'reviews' => 42, 'stock' => 'Low Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['id' => 'ART1004', 'category' => 'Gift Articles', 'name' => 'Ceramic Gift Box', 'price' => '$28.00', 'rating' => 4, 'reviews' => 64, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-    ['id' => 'ART1005', 'category' => 'Gift Articles', 'name' => 'Decorative Gift Set', 'price' => '$45.00', 'rating' => 5, 'reviews' => 112, 'stock' => 'In Stock', 'badge' => 'Sale', 'image' => $basePath . '/assets/images/gifts.svg'],
-    ['id' => 'ART1006', 'category' => 'Greeting Cards', 'name' => 'Botanical Watercolor Card', 'price' => '$5.50', 'rating' => 5, 'reviews' => 24, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-    ['id' => 'ART1007', 'category' => 'Greeting Cards', 'name' => 'Birthday Greeting Card', 'price' => '$4.50', 'rating' => 4, 'reviews' => 18, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/cards.svg'],
-    ['id' => 'ART1008', 'category' => 'Dolls', 'name' => 'Soft Plush Doll', 'price' => '$22.00', 'rating' => 5, 'reviews' => 76, 'stock' => 'In Stock', 'badge' => 'New', 'oldPrice' => '$28.00', 'image' => $basePath . '/assets/images/toys.svg'],
-    ['id' => 'ART1009', 'category' => 'Dolls', 'name' => 'Mini Teddy Bear', 'price' => '$14.00', 'rating' => 4, 'reviews' => 32, 'stock' => 'Out of Stock', 'badge' => '', 'image' => $basePath . '/assets/images/toys.svg'],
-    ['id' => 'ART1010', 'category' => 'Files', 'name' => 'Document File Set', 'price' => '$12.00', 'rating' => 4, 'reviews' => 41, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['id' => 'ART1011', 'category' => 'Files', 'name' => 'Premium Office File', 'price' => '$18.50', 'rating' => 5, 'reviews' => 58, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/stationery.svg'],
-    ['id' => 'ART1012', 'category' => 'Handbags', 'name' => 'Casual Handbag', 'price' => '$48.00', 'rating' => 4, 'reviews' => 29, 'stock' => 'In Stock', 'badge' => '', 'image' => $basePath . '/assets/images/gifts.svg'],
-];
+$categories = ['All'];
+foreach (get_product_categories() as $row) {
+    $categories[] = $row['name'];
+}
+
+$products = get_all_products(
+    $categoryFilter !== 'All' ? normalize_category_name($categoryFilter) : null,
+    $searchTerm !== '' ? $searchTerm : null
+);
+
+$categoryDisplay = $categoryFilter !== 'All' ? normalize_category_name($categoryFilter) : 'All';
 ?>
 
 <style>
@@ -346,22 +337,25 @@ $products = [
         <!-- Category Nav -->
         <nav class="shop-category-nav" aria-label="Product Categories">
             <?php foreach ($categories as $index => $cat): ?>
-                <button
-                    type="button"
-                    class="category-pill <?= $index === 0 ? 'active' : '' ?>"
+                <a
+                    href="<?= $basePath ?>/products.php?category=<?= urlencode($cat) ?>"
+                    class="category-pill <?= ($categoryDisplay === $cat) ? 'active' : '' ?>"
                     data-filter-category="<?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>"
                 >
                     <?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>
-                </button>
+                </a>
             <?php endforeach; ?>
         </nav>
 
         <!-- Search + Sort Toolbar -->
         <div class="shop-toolbar">
-            <div class="shop-search" role="search">
+            <form class="shop-search" role="search" method="GET" action="<?= $basePath ?>/products.php">
                 <span class="search-icon" style="color: var(--text-soft); font-size: 1.2rem;">⌕</span>
-                <input type="text" id="shopSearchInput" placeholder="Search products..." aria-label="Search products in this category">
-            </div>
+                <input type="text" id="shopSearchInput" name="search" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>" placeholder="Search products..." aria-label="Search products in this category">
+                <?php if ($categoryDisplay !== 'All'): ?>
+                    <input type="hidden" name="category" value="<?= htmlspecialchars($categoryDisplay, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
+            </form>
 
             <div class="sort-control">
                 <label for="sortSelect">Sort by:</label>
@@ -415,9 +409,6 @@ $products = [
 </main>
 
 <script>
-// Lightweight client-side search + category filter + sort for the mock
-// product grid. No backend/database involved — this only shows/hides and
-// reorders the .shop-grid-item wrappers that were already rendered by PHP.
 (function () {
     var grid = document.getElementById('shopGrid');
     var items = Array.prototype.slice.call(grid.querySelectorAll('.shop-grid-item'));

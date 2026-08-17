@@ -9,6 +9,20 @@
  * After include, use the shared PDO instance in $conn.
  */
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 3600,
+        'path' => '/',
+        'domain' => '',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    ini_set('session.gc_maxlifetime', '3600');
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.use_only_cookies', '1');
+}
+
 $db_host = 'localhost';
 $db_name = 'arts_shop';
 $db_user = 'root';
@@ -28,7 +42,8 @@ try {
         $pdo_options
     );
 } catch (PDOException $e) {
-    die('DB Error: ' . $e->getMessage());
+    http_response_code(500);
+    die('Database connection failed.');
 }
 
 /**
