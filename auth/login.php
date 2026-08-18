@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 
 $pageTitle = 'Log In - Arts';
 $basePath = '/Shopping%20Cart';

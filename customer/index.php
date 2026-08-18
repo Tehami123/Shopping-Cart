@@ -1,9 +1,41 @@
 <?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
 
 $pageTitle = 'My Dashboard - Arts';
 $basePath = '/Shopping%20Cart';
+$userId = current_user_id();
+$customerId = get_customer_id_for_user((int) $userId);
+
+// Get customer profile
+$profile = null;
+$orders = [];
+$orderCount = 0;
+$pendingCount = 0;
+$activeReturnsCount = 0;
+
+if ($customerId !== null) {
+    $profile = get_customer_profile($customerId);
+    $orders = get_customer_order_history($customerId);
+    $orderCount = count($orders);
+    
+    // Count pending orders
+    foreach ($orders as $order) {
+        if (in_array($order['status'], ['pending', 'confirmed', 'dispatched'], true)) {
+            $pendingCount++;
+        }
+    }
+    
+    // Count active returns
+    $returns = get_customer_return_requests($customerId);
+    foreach ($returns as $ret) {
+        if (in_array($ret['status'], ['requested', 'approved'], true)) {
+            $activeReturnsCount++;
+        }
+    }
+}
+
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 ?>
@@ -259,10 +291,10 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <!-- Customer Navigation Sidebar -->
             <aside class="customer-sidebar">
                 <div class="customer-profile-brief">
-                    <div class="avatar">JD</div>
+                    <div class="avatar"><?php if ($profile) { echo htmlspecialchars(strtoupper(substr($profile['first_name'], 0, 1) . substr($profile['last_name'], 0, 1)), ENT_QUOTES, 'UTF-8'); } else { echo 'U'; } ?></div>
                     <div class="info">
-                        <strong>Jane Doe</strong>
-                        <span>jane@example.com</span>
+                        <strong><?php if ($profile) { echo htmlspecialchars($profile['first_name'] . ' ' . $profile['last_name'], ENT_QUOTES, 'UTF-8'); } else { echo 'User'; } ?></strong>
+                        <span><?php if ($profile) { echo htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8'); } ?></span>
                     </div>
                 </div>
                 <nav class="customer-nav">
@@ -270,26 +302,26 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                     <a href="orders.php">My Orders</a>
                     <a href="returns.php">Returns & Replacements</a>
                     <a href="account.php">Account Details</a>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
+                    <a href="<?= $basePath ?>/auth/logout.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             
             <!-- Main Content -->
             <div class="customer-content">
                 <h1 class="customer-page-title">My Dashboard</h1>
-                <p class="customer-welcome">Welcome back, Jane! Here's an overview of your account.</p>
+                <p class="customer-welcome">Welcome back, <?php if ($profile) { echo htmlspecialchars($profile['first_name'], ENT_QUOTES, 'UTF-8'); } else { echo 'User'; } ?>! Here's an overview of your account.</p>
                 
                 <div class="dashboard-stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value">12</div>
+                        <div class="stat-value"><?= $orderCount ?></div>
                         <div class="stat-label">Total Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">2</div>
+                        <div class="stat-value"><?= $pendingCount ?></div>
                         <div class="stat-label">Pending Orders</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">1</div>
+                        <div class="stat-value"><?= $activeReturnsCount ?></div>
                         <div class="stat-label">Active Returns</div>
                     </div>
                 </div>
@@ -302,7 +334,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                     </a>
                     <a href="<?= $basePath ?>/cart.php" class="quick-link-card">
                         <span class="icon">🛒</span>
-                        <span>View Cart (3)</span>
+                        <span>View Cart</span>
                     </a>
                     <a href="orders.php" class="quick-link-card">
                         <span class="icon">📦</span>

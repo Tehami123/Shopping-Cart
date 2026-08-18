@@ -1,49 +1,92 @@
 <?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
 
 $pageTitle = 'Returns & Replacements - Arts';
 $basePath = '/Shopping%20Cart';
-require_once dirname(__DIR__) . '/includes/header.php';
-require_once dirname(__DIR__) . '/includes/navbar.php';
 
 $db = get_db_connection();
-$customerId = get_customer_id_for_user((int) current_user_id());
+$userId = current_user_id();
+$customerId = get_customer_id_for_user((int) $userId);
+$profile = null;
+
+if ($customerId === null) {
+    redirect_to($basePath . '/auth/login.php');
+}
+
+$profile = get_customer_profile($customerId);
+$returnMessage = '';
+$returnType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
     $orderItemId = (int) ($_POST['order_item_id'] ?? 0);
-    $returnType = in_array($_POST['return_type'] ?? '', ['return', 'replacement'], true) ? $_POST['return_type'] : 'return';
+    $returnTypeValue = in_array($_POST['return_type'] ?? '', ['return', 'replacement'], true) ? $_POST['return_type'] : 'return';
     $reason = trim((string) ($_POST['reason'] ?? ''));
     $description = trim((string) ($_POST['description'] ?? ''));
 
     if ($customerId !== null && $orderItemId > 0 && $reason !== '') {
-        $item = $db->prepare('SELECT oi.order_item_id, o.order_id, o.delivery_date, p.name FROM order_items oi INNER JOIN orders o ON o.order_id = oi.order_id INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_item_id = :order_item_id AND o.customer_id = :customer_id AND o.status = :status LIMIT 1');
-        $item->execute([':order_item_id' => $orderItemId, ':customer_id' => $customerId, ':status' => 'delivered']);
+        $item = $db->prepare('SELECT oi.order_item_id, o.order_id, o.delivery_date, p.name FROM order_items oi INNER JOIN orders o ON o.order_id = oi.order_id INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_item_id = :order_item_id AND o.customer_id = :item_customer_id AND o.status = :status LIMIT 1');
+        $item->execute([':order_item_id' => $orderItemId, ':item_customer_id' => $customerId, ':status' => 'delivered']);
         $row = $item->fetch();
 
         if ($row && $row['delivery_date'] && (time() - strtotime($row['delivery_date'])) <= (7 * 24 * 60 * 60)) {
-            $check = $db->prepare('SELECT return_id FROM returns WHERE order_item_id = :order_item_id AND customer_id = :customer_id LIMIT 1');
-            $check->execute([':order_item_id' => $orderItemId, ':customer_id' => $customerId]);
+            $check = $db->prepare('SELECT return_id FROM returns WHERE order_item_id = :check_order_item_id AND customer_id = :check_customer_id LIMIT 1');
+            $check->execute([':check_order_item_id' => $orderItemId, ':check_customer_id' => $customerId]);
             if (!$check->fetch()) {
-                $db->prepare('INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, status) VALUES (:order_id, :order_item_id, :customer_id, :return_type, :reason, :description, :status)')->execute([
+                $insert = $db->prepare('INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, status, request_date) VALUES (:order_id, :insert_order_item_id, :insert_customer_id, :return_type_val, :reason, :description, :status, CURRENT_TIMESTAMP)');
+                $insert->execute([
                     ':order_id' => (int) $row['order_id'],
-                    ':order_item_id' => (int) $row['order_item_id'],
-                    ':customer_id' => $customerId,
-                    ':return_type' => $returnType,
+                    ':insert_order_item_id' => $orderItemId,
+                    ':insert_customer_id' => $customerId,
+                    ':return_type_val' => $returnTypeValue,
                     ':reason' => $reason,
                     ':description' => $description,
                     ':status' => 'requested',
                 ]);
+                $returnMessage = 'Return request submitted successfully.';
+                $returnType = 'success';
+            } else {
+                $returnMessage = 'A return has already been requested for this item.';
+                $returnType = 'error';
             }
+        } else {
+            $returnMessage = 'This item is not eligible for return. Returns are only available for delivered items within 7 days.';
+            $returnType = 'error';
         }
+    } else {
+        $returnMessage = 'Please provide all required information.';
+        $returnType = 'error';
     }
 }
 
-$eligibleItems = $db->prepare('SELECT oi.order_item_id, o.order_id, o.order_number, o.delivery_date, p.name AS product_name, p.image_url FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id LEFT JOIN returns r ON r.order_item_id = oi.order_item_id AND r.customer_id = :customer_id WHERE o.customer_id = :customer_id AND o.status = :status AND o.delivery_date IS NOT NULL AND r.return_id IS NULL ORDER BY o.delivery_date DESC');
-$eligibleItems->execute([':customer_id' => $customerId, ':status' => 'delivered']);
+$eligibleItems = $db->prepare('
+    SELECT oi.order_item_id, o.order_id, o.order_number, o.delivery_date,
+           p.name AS product_name, p.image_url
+    FROM orders o
+    INNER JOIN order_items oi ON oi.order_id = o.order_id
+    INNER JOIN products p ON p.product_id = oi.product_id
+    LEFT JOIN returns r
+        ON r.order_item_id = oi.order_item_id
+        AND r.customer_id = :return_customer_id
+    WHERE o.customer_id = :order_customer_id
+      AND o.status = :status
+      AND o.delivery_date IS NOT NULL
+      AND r.return_id IS NULL
+    ORDER BY o.delivery_date DESC
+');
+
+$eligibleItems->execute([
+    ':return_customer_id' => $customerId,
+    ':order_customer_id' => $customerId,
+    ':status' => 'delivered'
+]);
 $mockItems = $eligibleItems->fetchAll();
 
 $existingRequests = get_customer_return_requests($customerId);
+
+require_once dirname(__DIR__) . '/includes/header.php';
+require_once dirname(__DIR__) . '/includes/navbar.php';
 ?>
 
 <style>
@@ -391,10 +434,10 @@ $existingRequests = get_customer_return_requests($customerId);
             <!-- Customer Navigation Sidebar -->
             <aside class="customer-sidebar">
                 <div class="customer-profile-brief">
-                    <div class="avatar">JD</div>
+                    <div class="avatar"><?php if ($profile) { echo htmlspecialchars(strtoupper(substr($profile['first_name'], 0, 1) . substr($profile['last_name'], 0, 1)), ENT_QUOTES, 'UTF-8'); } else { echo 'U'; } ?></div>
                     <div class="info">
-                        <strong>Jane Doe</strong>
-                        <span>jane@example.com</span>
+                        <strong><?php if ($profile) { echo htmlspecialchars($profile['first_name'] . ' ' . $profile['last_name'], ENT_QUOTES, 'UTF-8'); } else { echo 'User'; } ?></strong>
+                        <span><?php if ($profile) { echo htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8'); } ?></span>
                     </div>
                 </div>
                 <nav class="customer-nav">
@@ -402,35 +445,45 @@ $existingRequests = get_customer_return_requests($customerId);
                     <a href="orders.php">My Orders</a>
                     <a href="returns.php" class="active">Returns & Replacements</a>
                     <a href="account.php">Account Details</a>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
+                    <a href="<?= $basePath ?>/auth/logout.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             
             <!-- Main Content -->
             <div class="customer-content">
                 <h1 class="customer-page-title">Returns & Replacements</h1>
+
+                <?php if ($returnMessage): ?>
+                    <div class="alert-box" style="<?php if ($returnType === 'success') { echo 'background: rgba(76, 175, 80, 0.1); color: #2e7d32;'; } else { echo 'background: rgba(229, 57, 53, 0.1); color: #c62828;'; } ?>">
+                        <?= htmlspecialchars($returnMessage, ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="policy-notice">
                     <p><strong>Return Policy:</strong> You can request a return or replacement for eligible items within <strong>7 days</strong> of delivery.</p>
                 </div>
                 
                 <div class="returns-list">
-                    <?php foreach ($mockItems as $item): ?>
-                        <div class="return-item-card">
-                            <div class="return-item-image">
-                                <img src="<?= htmlspecialchars($item['image_url'] ?: $basePath . '/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt="Product">
-                            </div>
-                            <div class="return-item-details">
-                                <div class="return-item-name"><?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?></div>
-                                <div class="return-item-meta">Order #<?= htmlspecialchars($item['order_number'], ENT_QUOTES, 'UTF-8') ?></div>
-                                <div class="return-item-meta">Delivered: <?= date('d M Y', strtotime($item['delivery_date'])) ?></div>
-                            </div>
+                    <?php if (empty($mockItems)): ?>
+                        <div class="empty-state">No eligible items for return at this time.</div>
+                    <?php else: ?>
+                        <?php foreach ($mockItems as $item): ?>
+                            <div class="return-item-card">
+                                <div class="return-item-image">
+                                    <img src="<?= htmlspecialchars($item['image_url'] ?: $basePath . '/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt="Product">
+                                </div>
+                                <div class="return-item-details">
+                                    <div class="return-item-name"><?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <div class="return-item-meta">Order #<?= htmlspecialchars($item['order_number'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <div class="return-item-meta">Delivered: <?= date('d M Y', strtotime($item['delivery_date'])) ?></div>
+                                </div>
 
-                            <div class="return-item-actions">
-                                <button class="return-btn" onclick="openReturnModal(<?= json_encode($item['product_name']) ?>, <?= (int) $item['order_item_id'] ?>)">Return / Replace</button>
+                                <div class="return-item-actions">
+                                    <button class="return-btn" onclick="openReturnModal(<?= htmlspecialchars(json_encode($item['product_name']), ENT_QUOTES, 'UTF-8') ?>, <?= (int) $item['order_item_id'] ?>)">Return / Replace</button>
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
 
                 <?php if (!empty($existingRequests)): ?>
@@ -462,7 +515,7 @@ $existingRequests = get_customer_return_requests($customerId);
         <h3>Request Return or Replacement</h3>
         <p>Product: <strong id="modalProductName"></strong></p>
 
-        <form method="POST">
+        <form method="POST" action="returns.php">
             <input type="hidden" name="submit_return" value="1">
             <input type="hidden" id="orderItemId" name="order_item_id" value="0">
             <div class="form-group" style="margin-top: 20px;">
@@ -475,13 +528,7 @@ $existingRequests = get_customer_return_requests($customerId);
 
             <div class="form-group">
                 <label for="returnReason">Reason</label>
-                <select id="returnReason" name="reason" class="form-select" required>
-                    <option value="" disabled selected>Select a reason...</option>
-                    <option value="defective">Item is defective or broken</option>
-                    <option value="wrong_item">Received wrong item</option>
-                    <option value="not_needed">No longer needed</option>
-                    <option value="other">Other</option>
-                </select>
+                <input type="text" id="returnReason" name="reason" class="form-input" placeholder="e.g., Defective, wrong item, etc." required>
             </div>
 
             <div class="form-group">

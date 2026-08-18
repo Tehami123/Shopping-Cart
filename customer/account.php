@@ -1,9 +1,110 @@
 <?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
 
 $pageTitle = 'Account Details - Arts';
 $basePath = '/Shopping%20Cart';
+$userId = current_user_id();
+$customerId = get_customer_id_for_user((int) $userId);
+
+$message = '';
+$messageType = 'info'; // 'success', 'error', 'info'
+$profile = null;
+
+if ($customerId !== null) {
+    $profile = get_customer_profile($customerId);
+}
+
+// Handle profile update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+    if ($customerId === null || $profile === null) {
+        $message = 'Profile not found.';
+        $messageType = 'error';
+    } else {
+        $firstName = trim($_POST['firstName'] ?? '');
+        $lastName = trim($_POST['lastName'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+        $city = trim($_POST['city'] ?? '');
+        $postalCode = trim($_POST['postalCode'] ?? '');
+        $country = trim($_POST['country'] ?? '');
+        
+        if ($firstName === '' || $lastName === '' || $phone === '' || $address === '' || $city === '' || $postalCode === '' || $country === '') {
+            $message = 'All fields are required.';
+            $messageType = 'error';
+        } else {
+            $updated = update_customer_profile($customerId, [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => $phone,
+                'address' => $address,
+                'city' => $city,
+                'postal_code' => $postalCode,
+                'country' => $country
+            ]);
+            
+            if ($updated) {
+                $message = 'Your profile has been updated successfully.';
+                $messageType = 'success';
+                // Refresh profile data
+                $profile = get_customer_profile($customerId);
+            } else {
+                $message = 'Failed to update profile. Please try again.';
+                $messageType = 'error';
+            }
+        }
+    }
+}
+
+// Handle password change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_password'])) {
+    if ($customerId === null) {
+        $message = 'Authentication required.';
+        $messageType = 'error';
+    } else {
+        $currentPassword = $_POST['currentPassword'] ?? '';
+        $newPassword = $_POST['newPassword'] ?? '';
+        $confirmPassword = $_POST['confirmNewPassword'] ?? '';
+        
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            $message = 'All password fields are required.';
+            $messageType = 'error';
+        } else if ($newPassword !== $confirmPassword) {
+            $message = 'New passwords do not match.';
+            $messageType = 'error';
+        } else if (!validate_password($newPassword)) {
+            $message = 'Password must be at least 8 characters long.';
+            $messageType = 'error';
+        } else {
+            // Verify current password
+            $currentUser = current_user();
+            if ($currentUser === null) {
+                $message = 'Authentication failed.';
+                $messageType = 'error';
+            } else {
+                $db = get_db_connection();
+                $stmt = $db->prepare('SELECT password_hash FROM users WHERE user_id = :user_id LIMIT 1');
+                $stmt->execute([':user_id' => $userId]);
+                $user = $stmt->fetch();
+                
+                if ($user && password_verify($currentPassword, $user['password_hash'])) {
+                    if (update_customer_password($userId, $newPassword)) {
+                        $message = 'Your password has been changed successfully.';
+                        $messageType = 'success';
+                    } else {
+                        $message = 'Failed to update password. Please try again.';
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = 'Current password is incorrect.';
+                    $messageType = 'error';
+                }
+            }
+        }
+    }
+}
+
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 ?>
@@ -306,10 +407,10 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <!-- Customer Navigation Sidebar -->
             <aside class="customer-sidebar">
                 <div class="customer-profile-brief">
-                    <div class="avatar">JD</div>
+                    <div class="avatar"><?php if ($profile) { echo htmlspecialchars(strtoupper(substr($profile['first_name'], 0, 1) . substr($profile['last_name'], 0, 1)), ENT_QUOTES, 'UTF-8'); } else { echo 'U'; } ?></div>
                     <div class="info">
-                        <strong>Jane Doe</strong>
-                        <span>jane@example.com</span>
+                        <strong><?php if ($profile) { echo htmlspecialchars($profile['first_name'] . ' ' . $profile['last_name'], ENT_QUOTES, 'UTF-8'); } else { echo 'User'; } ?></strong>
+                        <span><?php if ($profile) { echo htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8'); } ?></span>
                     </div>
                 </div>
                 <nav class="customer-nav">
@@ -317,7 +418,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                     <a href="orders.php">My Orders</a>
                     <a href="returns.php">Returns & Replacements</a>
                     <a href="account.php" class="active">Account Details</a>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
+                    <a href="<?= $basePath ?>/auth/logout.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             
@@ -328,28 +429,35 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                     <button type="button" class="secondary-button" id="editProfileBtn">Edit Profile</button>
                 </div>
                 
-                <form action="#" method="POST" id="accountForm" class="customer-form">
+                <?php if ($message !== ''): ?>
+                    <div class="alert-box" style="<?php if ($messageType === 'success') { echo 'background: rgba(76, 175, 80, 0.1); color: #2e7d32;'; } elseif ($messageType === 'error') { echo 'background: rgba(229, 57, 53, 0.1); color: #c62828;'; } ?>">
+                        <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form action="account.php" method="POST" id="accountForm" class="customer-form">
+                    <input type="hidden" name="update_profile" value="1">
                     
                     <section class="customer-form-section">
                         <h3>Personal Information</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="firstName">First Name</label>
-                                <input type="text" id="firstName" name="firstName" class="form-input" value="Jane" disabled>
+                                <input type="text" id="firstName" name="firstName" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['first_name'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                             <div class="form-group">
                                 <label for="lastName">Last Name</label>
-                                <input type="text" id="lastName" name="lastName" class="form-input" value="Doe" disabled>
+                                <input type="text" id="lastName" name="lastName" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['last_name'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="email">Email Address</label>
-                                <input type="email" id="email" name="email" class="form-input" value="jane@example.com" disabled>
+                                <input type="email" id="email" name="email" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" class="form-input" value="+1 (555) 123-4567" disabled>
+                                <input type="tel" id="phone" name="phone" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['phone'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                         </div>
                     </section>
@@ -358,25 +466,26 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                         <h3>Address Information</h3>
                         <div class="form-group">
                             <label for="address">Street Address</label>
-                            <textarea id="address" name="address" class="form-textarea" rows="2" disabled>123 Shopping Avenue, Suite 100</textarea>
+                            <textarea id="address" name="address" class="form-textarea" rows="2" disabled><?php if ($profile) { echo htmlspecialchars($profile['address'], ENT_QUOTES, 'UTF-8'); } ?></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City</label>
-                                <input type="text" id="city" name="city" class="form-input" value="Metropolis" disabled>
+                                <input type="text" id="city" name="city" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['city'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                             <div class="form-group">
                                 <label for="postalCode">Postal Code</label>
-                                <input type="text" id="postalCode" name="postalCode" class="form-input" value="10001" disabled>
+                                <input type="text" id="postalCode" name="postalCode" class="form-input" value="<?php if ($profile) { echo htmlspecialchars($profile['postal_code'], ENT_QUOTES, 'UTF-8'); } ?>" disabled>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="country">Country</label>
                             <select id="country" name="country" class="form-select" disabled>
-                                <option value="US" selected>United States</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="CA">Canada</option>
-                                <option value="PK">Pakistan</option>
+                                <option value="US" <?php if ($profile && $profile['country'] === 'US') { echo 'selected'; } ?>>United States</option>
+                                <option value="UK" <?php if ($profile && $profile['country'] === 'UK') { echo 'selected'; } ?>>United Kingdom</option>
+                                <option value="CA" <?php if ($profile && $profile['country'] === 'CA') { echo 'selected'; } ?>>Canada</option>
+                                <option value="PK" <?php if ($profile && $profile['country'] === 'PK') { echo 'selected'; } ?>>Pakistan</option>
+                                <option value="Other" <?php if ($profile && !in_array($profile['country'], ['US', 'UK', 'CA', 'PK'], true)) { echo 'selected'; } ?>>Other</option>
                             </select>
                         </div>
                     </section>
@@ -393,7 +502,8 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                 <!-- Password Change Section -->
                 <section class="customer-form-section">
                     <h3>Change Password</h3>
-                    <form action="#" method="POST" id="passwordForm" class="customer-form">
+                    <form action="account.php" method="POST" id="passwordForm" class="customer-form">
+                        <input type="hidden" name="update_password" value="1">
                         <div class="form-group">
                             <label for="currentPassword">Current Password</label>
                             <input type="password" id="currentPassword" name="currentPassword" class="form-input" required>
@@ -424,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelEditBtn');
     const saveActions = document.getElementById('saveActions');
     const accountForm = document.getElementById('accountForm');
-    const inputs = accountForm.querySelectorAll('input, select, textarea');
+    const inputs = accountForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
     
     // Toggle Edit Mode
     function toggleEdit(enabled) {
@@ -441,26 +551,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     editBtn.addEventListener('click', () => toggleEdit(true));
-    cancelBtn.addEventListener('click', () => toggleEdit(false));
-    
-    // Mock Form Submission
-    accountForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Profile saved successfully! (Frontend Mock)');
+    cancelBtn.addEventListener('click', () => {
+        accountForm.reset();
         toggleEdit(false);
-    });
-
-    const passwordForm = document.getElementById('passwordForm');
-    passwordForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const pwd = document.getElementById('newPassword').value;
-        const confirm = document.getElementById('confirmNewPassword').value;
-        if (pwd !== confirm) {
-            alert('New passwords do not match.');
-            return;
-        }
-        alert('Password updated successfully! (Frontend Mock)');
-        passwordForm.reset();
     });
 });
 </script>

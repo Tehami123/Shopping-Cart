@@ -2,19 +2,39 @@
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
-require_once dirname(__DIR__) . '/config/database.php';
 
 $pageTitle = 'My Orders - Arts';
 $basePath = '/Shopping%20Cart';
-$customerId = get_customer_id_for_user((int) current_user_id());
+$userId = current_user_id();
+$customerId = get_customer_id_for_user((int) $userId);
 
 if ($customerId === null) {
     redirect_to($basePath . '/auth/login.php');
 }
 
+$profile = get_customer_profile($customerId);
 $orders = get_customer_order_history($customerId);
 $orderSuccess = $_SESSION['order_success'] ?? null;
 unset($_SESSION['order_success']);
+
+// Handle order cancellation
+$cancelMessage = '';
+$cancelType = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
+    $orderIdToCancel = (int) ($_POST['cancel_order_id'] ?? 0);
+    
+    if ($orderIdToCancel > 0) {
+        if (cancel_order($orderIdToCancel, $customerId)) {
+            $cancelMessage = 'Order cancelled successfully.';
+            $cancelType = 'success';
+            // Refresh orders list
+            $orders = get_customer_order_history($customerId);
+        } else {
+            $cancelMessage = 'Unable to cancel this order. It may have already been dispatched.';
+            $cancelType = 'error';
+        }
+    }
+}
 
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
@@ -294,10 +314,10 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <!-- Customer Navigation Sidebar -->
             <aside class="customer-sidebar">
                 <div class="customer-profile-brief">
-                    <div class="avatar">JD</div>
+                    <div class="avatar"><?php if ($profile) { echo htmlspecialchars(strtoupper(substr($profile['first_name'], 0, 1) . substr($profile['last_name'], 0, 1)), ENT_QUOTES, 'UTF-8'); } else { echo 'U'; } ?></div>
                     <div class="info">
-                        <strong>Jane Doe</strong>
-                        <span>jane@example.com</span>
+                        <strong><?php if ($profile) { echo htmlspecialchars($profile['first_name'] . ' ' . $profile['last_name'], ENT_QUOTES, 'UTF-8'); } else { echo 'User'; } ?></strong>
+                        <span><?php if ($profile) { echo htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8'); } ?></span>
                     </div>
                 </div>
                 <nav class="customer-nav">
@@ -305,7 +325,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                     <a href="orders.php" class="active">My Orders</a>
                     <a href="returns.php">Returns & Replacements</a>
                     <a href="account.php">Account Details</a>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
+                    <a href="<?= $basePath ?>/auth/logout.php" class="logout-link">Logout</a>
                 </nav>
             </aside>
             
@@ -316,13 +336,19 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                 <?php if ($orderSuccess): ?>
                     <div class="alert-box"><?= htmlspecialchars($orderSuccess, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
+
+                <?php if ($cancelMessage): ?>
+                    <div class="alert-box" style="<?php if ($cancelType === 'success') { echo 'background: rgba(76, 175, 80, 0.1); color: #2e7d32;'; } else { echo 'background: rgba(229, 57, 53, 0.1); color: #c62828;'; } ?>">
+                        <?= htmlspecialchars($cancelMessage, ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
                 
                 <div class="orders-list">
                     <?php if (empty($orders)): ?>
                         <div class="empty-state">No orders yet. Start shopping to place your first order.</div>
                     <?php else: ?>
                         <?php foreach ($orders as $order): ?>
-                            <?php $payment = str_replace('_', ' ', $order['payment_status']); $status = str_replace('_', ' ', $order['status']); ?>
+                            <?php $payment = str_replace('_', ' ', $order['payment_status']); $status = str_replace('_', ' ', $order['status']); $canCancel = in_array($order['status'], ['pending', 'confirmed'], true); ?>
                             <div class="order-card">
                                 <div class="order-card-header">
                                     <div class="order-info-group">
@@ -340,15 +366,21 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                 </div>
                                 <div class="order-card-body">
                                     <div class="order-status-group">
-                                        <div class="status-badge payment-<?= strtolower($payment) ?>">
-                                            Payment: <?= ucfirst($payment) ?>
+                                        <div class="status-badge payment-<?= htmlspecialchars(strtolower($payment), ENT_QUOTES, 'UTF-8') ?>">
+                                            Payment: <?= htmlspecialchars(ucfirst($payment), ENT_QUOTES, 'UTF-8') ?>
                                         </div>
-                                        <div class="status-badge status-<?= strtolower($status) ?>">
-                                            Status: <?= ucfirst($status) ?>
+                                        <div class="status-badge status-<?= htmlspecialchars(strtolower($status), ENT_QUOTES, 'UTF-8') ?>">
+                                            Status: <?= htmlspecialchars(ucfirst($status), ENT_QUOTES, 'UTF-8') ?>
                                         </div>
                                     </div>
                                     <div class="order-actions">
-                                        <button class="order-action-btn" type="button">View Details</button>
+                                        <button class="order-action-btn" type="button" onclick="alert('Order details view coming soon.');">View Details</button>
+                                        <?php if ($canCancel): ?>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="cancel_order_id" value="<?= (int) $order['order_id'] ?>">
+                                                <button type="submit" class="cancel-order-btn" onclick="return confirm('Are you sure you want to cancel this order?');">Cancel Order</button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

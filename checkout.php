@@ -12,6 +12,16 @@ if ($customerId === null) {
     redirect_to($basePath . '/auth/login.php');
 }
 
+$customerProfile = get_customer_profile($customerId);
+$currentUser = current_user();
+$profileCountryCodes = [
+    'United States' => 'US',
+    'United Kingdom' => 'UK',
+    'Canada' => 'CA',
+    'Pakistan' => 'PK',
+];
+$profileCountry = $profileCountryCodes[$customerProfile['country'] ?? ''] ?? ($customerProfile['country'] ?? '');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cart = get_cart();
     if (empty($cart)) {
@@ -21,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $deliveryType = $_POST['deliveryType'] ?? 'standard';
     $paymentMethod = $_POST['paymentMethod'] ?? 'pay_on_delivery';
+    if ($paymentMethod === 'cod') {
+        $paymentMethod = 'pay_on_delivery';
+    }
     $firstName = trim((string) ($_POST['firstName'] ?? ''));
     $lastName = trim((string) ($_POST['lastName'] ?? ''));
     $email = trim((string) ($_POST['email'] ?? ''));
@@ -52,12 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db->beginTransaction();
             $firstProductId = $items[0]['id'] ?? '';
+            $provisionalOrderNumber = '9' . str_pad((string) random_int(0, 999999999999999), 15, '0', STR_PAD_LEFT);
             $stmt = $db->prepare('INSERT INTO orders (order_number, customer_id, total_amount, status, payment_method, payment_status, delivery_type, notes) VALUES (:order_number, :customer_id, :total_amount, :status, :payment_method, :payment_status, :delivery_type, :notes)');
-            $orderId = 0;
-            $orderId = (int) $db->query('SELECT COALESCE(MAX(order_id), 0) + 1 FROM orders')->fetchColumn();
-            $orderNumber = generate_order_number($deliveryType, $firstProductId, $orderId);
             $stmt->execute([
-                ':order_number' => $orderNumber,
+                ':order_number' => $provisionalOrderNumber,
                 ':customer_id' => $customerId,
                 ':total_amount' => number_format($total, 2, '.', ''),
                 ':status' => 'pending',
@@ -67,6 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':notes' => 'Checkout placed by authenticated customer.'
             ]);
             $insertedOrderId = (int) $db->lastInsertId();
+            $orderNumber = generate_order_number($deliveryType, $firstProductId, $insertedOrderId);
+            $stmt = $db->prepare('UPDATE orders SET order_number = :order_number WHERE order_id = :order_id');
+            $stmt->execute([
+                ':order_number' => $orderNumber,
+                ':order_id' => $insertedOrderId,
+            ]);
 
             foreach ($items as $item) {
                 $product = get_product_by_id($item['id']);
@@ -83,8 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':unit_price' => number_format((float) $item['price'], 2, '.', ''),
                 ]);
 
-                $stmtStock = $db->prepare('UPDATE products SET stock = stock - :qty WHERE product_id = :product_id AND stock >= :qty');
-                $stmtStock->execute([':qty' => $qty, ':product_id' => $productId]);
+                $stmtStock = $db->prepare('UPDATE products SET stock = stock - :quantity WHERE product_id = :product_id AND stock >= :required_quantity');
+                $stmtStock->execute([
+                    ':quantity' => $qty,
+                    ':product_id' => $productId,
+                    ':required_quantity' => $qty,
+                ]);
                 if ($stmtStock->rowCount() !== 1) {
                     throw new Exception('Stock validation failed for one or more items.');
                 }
@@ -501,21 +522,21 @@ $formError = $formError ?? null;
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="firstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="firstName" name="firstName" class="form-input" required placeholder="Jane" value="<?= htmlspecialchars($_POST['firstName'] ?? current_user()['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="text" id="firstName" name="firstName" class="form-input" required placeholder="Jane" value="<?= htmlspecialchars($_POST['firstName'] ?? $customerProfile['first_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="lastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="lastName" name="lastName" class="form-input" required placeholder="Doe" value="<?= htmlspecialchars($_POST['lastName'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="text" id="lastName" name="lastName" class="form-input" required placeholder="Doe" value="<?= htmlspecialchars($_POST['lastName'] ?? $customerProfile['last_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="email">Email Address <span class="required">*</span></label>
-                                <input type="email" id="email" name="email" class="form-input" required placeholder="jane@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="email" id="email" name="email" class="form-input" required placeholder="jane@example.com" value="<?= htmlspecialchars($_POST['email'] ?? $currentUser['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 000-0000" value="<?= htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 000-0000" value="<?= htmlspecialchars($_POST['phone'] ?? $customerProfile['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                     </section>
@@ -525,26 +546,26 @@ $formError = $formError ?? null;
                         <h2 class="checkout-section-title">2. Delivery Information</h2>
                         <div class="form-group">
                             <label for="address">Street Address <span class="required">*</span></label>
-                            <textarea id="address" name="address" class="form-textarea" required rows="3" placeholder="123 Shopping Avenue, Suite 100"><?= htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <textarea id="address" name="address" class="form-textarea" required rows="3" placeholder="123 Shopping Avenue, Suite 100"><?= htmlspecialchars($_POST['address'] ?? $customerProfile['address'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City <span class="required">*</span></label>
-                                <input type="text" id="city" name="city" class="form-input" required placeholder="Metropolis" value="<?= htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="text" id="city" name="city" class="form-input" required placeholder="Metropolis" value="<?= htmlspecialchars($_POST['city'] ?? $customerProfile['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                             <div class="form-group">
                                 <label for="postalCode">Postal Code <span class="required">*</span></label>
-                                <input type="text" id="postalCode" name="postalCode" class="form-input" required placeholder="10001" value="<?= htmlspecialchars($_POST['postalCode'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="text" id="postalCode" name="postalCode" class="form-input" required placeholder="10001" value="<?= htmlspecialchars($_POST['postalCode'] ?? $customerProfile['postal_code'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="country">Country <span class="required">*</span></label>
                             <select id="country" name="country" class="form-select" required>
-                                <option value="" disabled <?= empty($_POST['country'] ?? '') ? 'selected' : '' ?>>Select Country</option>
-                                <option value="US" <?= (($_POST['country'] ?? '') === 'US') ? 'selected' : '' ?>>United States</option>
-                                <option value="UK" <?= (($_POST['country'] ?? '') === 'UK') ? 'selected' : '' ?>>United Kingdom</option>
-                                <option value="CA" <?= (($_POST['country'] ?? '') === 'CA') ? 'selected' : '' ?>>Canada</option>
-                                <option value="PK" <?= (($_POST['country'] ?? '') === 'PK') ? 'selected' : '' ?>>Pakistan</option>
+                                <option value="" disabled <?= empty($_POST['country'] ?? $profileCountry) ? 'selected' : '' ?>>Select Country</option>
+                                <option value="US" <?= (($_POST['country'] ?? $profileCountry) === 'US') ? 'selected' : '' ?>>United States</option>
+                                <option value="UK" <?= (($_POST['country'] ?? $profileCountry) === 'UK') ? 'selected' : '' ?>>United Kingdom</option>
+                                <option value="CA" <?= (($_POST['country'] ?? $profileCountry) === 'CA') ? 'selected' : '' ?>>Canada</option>
+                                <option value="PK" <?= (($_POST['country'] ?? $profileCountry) === 'PK') ? 'selected' : '' ?>>Pakistan</option>
                             </select>
                         </div>
                     </section>
@@ -585,7 +606,7 @@ $formError = $formError ?? null;
                         <h2 class="checkout-section-title">4. Payment Method</h2>
                         <div class="radio-group">
                             <label class="radio-option">
-                                <input type="radio" name="paymentMethod" value="cod" checked>
+                                <input type="radio" name="paymentMethod" value="pay_on_delivery" checked>
                                 <div class="radio-option-content">
                                     <span class="radio-title">Pay on Delivery (VPP)</span>
                                     <span class="radio-desc">Pay with cash when your order arrives</span>

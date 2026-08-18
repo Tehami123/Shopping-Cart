@@ -116,6 +116,7 @@ function get_product_by_id($productId): ?array
         'price' => format_currency((float) $row['price']),
         'price_numeric' => (float) $row['price'],
         'stock' => (int) $row['stock'],
+        'stock_count' => (int) $row['stock'],
         'stock_label' => normalize_product_stock_label((int) $row['stock']),
         'image_url' => $row['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg',
         'status' => $row['status'],
@@ -591,15 +592,16 @@ function get_customer_eligible_return_items(int $customerId): array
         FROM orders o
         INNER JOIN order_items oi ON oi.order_id = o.order_id
         INNER JOIN products p ON p.product_id = oi.product_id
-        LEFT JOIN returns r ON r.order_item_id = oi.order_item_id AND r.customer_id = :customer_id
-        WHERE o.customer_id = :customer_id
+        LEFT JOIN returns r ON r.order_item_id = oi.order_item_id AND r.customer_id = :return_customer_id
+        WHERE o.customer_id = :order_customer_id
           AND o.status = :status
           AND o.delivery_date IS NOT NULL
           AND r.return_id IS NULL
         ORDER BY o.delivery_date DESC'
     );
     $stmt->execute([
-        ':customer_id' => $customerId,
+        ':return_customer_id' => $customerId,
+        ':order_customer_id' => $customerId,
         ':status' => 'delivered',
     ]);
     return $stmt->fetchAll();
@@ -647,4 +649,173 @@ function get_order_by_id_for_admin(int $orderId): ?array
     $stmt->execute([':order_id' => $orderId]);
     $order = $stmt->fetch();
     return $order ?: null;
+}
+
+// ========== CUSTOMER PROFILE FUNCTIONS ==========
+
+function get_customer_profile(int $customerId): ?array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT c.*, u.email FROM customers c INNER JOIN users u ON u.user_id = c.user_id WHERE c.customer_id = :customer_id LIMIT 1'
+    );
+    $stmt->execute([':customer_id' => $customerId]);
+    $profile = $stmt->fetch();
+    return $profile ?: null;
+}
+
+function update_customer_profile(int $customerId, array $data): bool
+{
+    $db = get_db_connection();
+    
+    $updates = [];
+    $params = [':customer_id' => $customerId];
+    
+    if (isset($data['first_name'])) {
+        $updates[] = 'first_name = :first_name';
+        $params[':first_name'] = trim($data['first_name']);
+    }
+    
+    if (isset($data['last_name'])) {
+        $updates[] = 'last_name = :last_name';
+        $params[':last_name'] = trim($data['last_name']);
+    }
+    
+    if (isset($data['phone'])) {
+        $updates[] = 'phone = :phone';
+        $params[':phone'] = trim($data['phone']);
+    }
+    
+    if (isset($data['address'])) {
+        $updates[] = 'address = :address';
+        $params[':address'] = trim($data['address']);
+    }
+    
+    if (isset($data['city'])) {
+        $updates[] = 'city = :city';
+        $params[':city'] = trim($data['city']);
+    }
+    
+    if (isset($data['postal_code'])) {
+        $updates[] = 'postal_code = :postal_code';
+        $params[':postal_code'] = trim($data['postal_code']);
+    }
+    
+    if (isset($data['country'])) {
+        $updates[] = 'country = :country';
+        $params[':country'] = trim($data['country']);
+    }
+    
+    if (empty($updates)) {
+        return false;
+    }
+    
+    $sql = 'UPDATE customers SET ' . implode(', ', $updates) . ' WHERE customer_id = :customer_id';
+    $stmt = $db->prepare($sql);
+    
+    try {
+        return $stmt->execute($params);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+function update_customer_password(int $userId, string $newPassword): bool
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare('UPDATE users SET password_hash = :password_hash WHERE user_id = :user_id');
+    
+    try {
+        return $stmt->execute([
+            ':password_hash' => password_hash($newPassword, PASSWORD_BCRYPT),
+            ':user_id' => $userId
+        ]);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+// ========== ORDER FUNCTIONS ==========
+
+function can_cancel_order(int $orderId, int $customerId): bool
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT status FROM orders WHERE order_id = :order_id AND customer_id = :customer_id LIMIT 1'
+    );
+    $stmt->execute([':order_id' => $orderId, ':customer_id' => $customerId]);
+    $order = $stmt->fetch();
+    
+    if (!$order) {
+        return false;
+    }
+    
+    // Can only cancel if status is pending or confirmed (not dispatched, delivered, or already cancelled)
+    return in_array($order['status'], ['pending', 'confirmed'], true);
+}
+
+function cancel_order(int $orderId, int $customerId): bool
+{
+    $db = get_db_connection();
+    
+    // Verify ownership and check if cancellable
+    if (!can_cancel_order($orderId, $customerId)) {
+        return false;
+    }
+    
+    try {
+        $db->beginTransaction();
+        
+        // Update order status to cancelled
+        $stmt = $db->prepare(
+            'UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE order_id = :order_id'
+        );
+        $stmt->execute([':status' => 'cancelled', ':order_id' => $orderId]);
+        
+        // Restore stock for all items in the order
+        $stmt = $db->prepare(
+            'SELECT oi.product_id, oi.quantity FROM order_items WHERE order_id = :order_id'
+        );
+        $stmt->execute([':order_id' => $orderId]);
+        $items = $stmt->fetchAll();
+        
+        foreach ($items as $item) {
+            $stmt = $db->prepare(
+                'UPDATE products SET stock = stock + :quantity WHERE product_id = :product_id'
+            );
+            $stmt->execute([':quantity' => (int) $item['quantity'], ':product_id' => (int) $item['product_id']]);
+        }
+        
+        $db->commit();
+        return true;
+    } catch (Exception $e) {
+        $db->rollBack();
+        return false;
+    }
+}
+
+function get_order_by_id_for_customer(int $orderId, int $customerId): ?array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT o.* FROM orders o WHERE o.order_id = :order_id AND o.customer_id = :customer_id LIMIT 1'
+    );
+    $stmt->execute([':order_id' => $orderId, ':customer_id' => $customerId]);
+    $order = $stmt->fetch();
+    
+    if (!$order) {
+        return null;
+    }
+    
+    // Get line items
+    $stmt = $db->prepare(
+        'SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, p.name AS product_name, p.full_product_id FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_id = :order_id'
+    );
+    $stmt->execute([':order_id' => $orderId]);
+    $items = $stmt->fetchAll();
+    
+    return [
+        'order' => $order,
+        'items' => $items
+    ];
 }
