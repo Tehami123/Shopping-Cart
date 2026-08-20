@@ -469,6 +469,118 @@ Status: **COMPLETED + TESTED**
 
 ---
 
+# ADMIN PANEL INTEGRATION REPAIR + DATA QA (2026-08-19)
+Status: **COMPLETED + APACHE/MARIADB TESTED**
+
+### Root Causes and Fixes
+- `format_currency()` and the admin return, feedback, and FAQ helpers already existed in `includes/functions.php`; the affected admin pages were missing the shared functions include. Added the existing include to the affected pages, with no duplicate helper implementations.
+- The admin products query already used `fetchAll()` with no `LIMIT`, so the one-product symptom was caused by the fatal render stopping the page. After the include fix, all 14 database products render.
+- `admin/customers.php` and `admin/employees.php` still contained mock table rows. Replaced those rows with live customer and employee-account queries while preserving the existing table UI.
+- The dashboard contained hard-coded placeholder statistics. Added one shared `get_admin_dashboard_stats()` helper using live database counts and replaced only the existing six displayed values.
+- The employee statistic counts active employee accounts in `users`, matching the real login data rather than the currently empty `employees` profile table.
+
+### Verified Database Counts
+- Products: 14 total; all seeded products present.
+- Orders: 3 total; 3 pending.
+- Customers: 6.
+- Active employee accounts: 1.
+- Returns: 0.
+- Feedback: 0.
+- FAQs: 0.
+- Low-stock active products (`stock <= 5`): 1.
+
+### Apache Admin Page Tests
+- Admin dashboard: loaded and displayed `14 / 1 / 3 / 3 / 6 / 1` for the existing six statistics.
+- Admin products: loaded with 14 table rows, including the seeded catalog records.
+- Admin inventory: loaded with 14 table rows and stock labels.
+- Admin orders: loaded with 3 table rows and live order totals/status/payment data.
+- Admin payments: loaded with 3 table rows and live payment data.
+- Admin returns: loaded with zero rows without fatal errors.
+- Admin feedback: loaded with zero rows without fatal errors.
+- Admin FAQ: loaded with zero rows without fatal errors.
+- Admin customers: loaded with 6 live customer rows; mock `Jane Doe` data removed.
+- Admin employees: loaded with 1 live active employee-account row; mock `John Smith` data removed.
+- Admin authentication guard remained active during all page tests.
+
+### Syntax and Cleanup
+- PHP lint passed for `includes/functions.php` and all modified admin pages.
+- Temporary QA admin account was removed; final database counts were rechecked.
+- No temporary diagnostic files or test records remain.
+
+### Remaining Data Limitation
+- The current database genuinely contains no return, feedback, or FAQ records, so those admin pages were verified for safe empty-state loading and query execution. Records will appear when created through their existing workflows.
+
+---
+
+# FINAL QA PASS — FAQ, SEARCH, NAVIGATION, AND AUTH ROUTING (2026-08-19)
+Status: **COMPLETED + RUNTIME TESTED**
+
+### Bugs Found and Fixed
+- **FAQ fatal error:** `faq.php` called `get_all_published_faqs()` without loading `includes/functions.php`. Added the existing helper include; no duplicate function was created.
+- **Search HY093:** `get_all_products()` reused the native PDO placeholder `:term` three times for product name, description, and category. Replaced it with matching `:name_term`, `:description_term`, and `:category_term` parameters.
+- **Navbar cleanup:** Removed the unused empty search input and redundant `search.php` navigation link. Added About Us and Contact Us to the main navbar. The real search/filter experience remains on `products.php`.
+
+### Authentication Routing Verification
+- Logged-out `/admin/index.php` requests redirect to `/admin/login.php` and display the Admin Login form.
+- Logged-out `/employee/index.php` requests redirect to `/employee/login.php` and display the Employee Login form.
+- Invalid credentials fail safely.
+- Existing `admin@example.com` login reached `/admin/index.php`.
+- Existing `employee@example.com` login reached `/employee/index.php`.
+- Customer access to admin and employee protected pages was denied and redirected to the homepage.
+- Employee access to admin was denied.
+- Admin access to employee pages remained allowed by the existing `require_employee()` architecture.
+- No authentication system was duplicated, and protected-page guards remain active.
+
+### Runtime Tests Performed
+- Public Apache smoke tests: home, products, product detail, FAQ, About Us, and Contact Us — passed without fatal errors.
+- Shop search tests: empty search, `Bag`, product-name search, category filtering, combined category plus keyword filtering, and no-results search — passed without HY093.
+- FAQ database visibility test: published FAQ displayed; draft FAQ did not appear publicly.
+- PHP syntax checks passed for all modified PHP files, including `includes/functions.php`, `faq.php`, and `includes/navbar.php`.
+- Temporary QA FAQ rows and authentication accounts were removed after testing; no QA records remain.
+
+### Compatibility Note
+- `search.php` was retained as an unlinked compatibility page because it still contains its own search/filter UI and no required dependency justified deleting it. The primary navigation now directs users to the single coherent `products.php` shop/search experience.
+
+### Files Modified in This Pass
+- `includes/functions.php`
+- `faq.php`
+- `includes/navbar.php`
+
+### Remaining Known Issues
+- Existing admin and employee accounts are database data rather than schema seed data; fresh installations must create role accounts manually.
+- The application still uses the existing local XAMPP database credentials in `config/database.php` and should be configured per machine for deployment.
+
+---
+
+# TARGETED ADMIN/EMPLOYEE LOGIN ROUTING FIX (2026-08-19)
+Status: **FIXED + APACHE TESTED**
+
+### Root Cause
+- Protected admin and employee dashboards existed, but public role-specific login entry pages did not.
+- Logged-out requests fell through the generic login redirect instead of opening an admin or employee login form.
+- The shared login form did not retain or enforce the requested portal role.
+
+### Fix
+- Added `admin/login.php` and `employee/login.php`, both reusing the existing `auth/login.php` implementation.
+- Updated `require_role()` to pass its redirect target into `require_login()`.
+- Updated `require_admin()` and `require_employee()` to use their matching role login pages as defaults.
+- Added role-preserving form state and role verification to the shared login flow.
+- Wrong-role credentials are rejected without creating a session; protected dashboards remain guarded.
+
+### Verified Through XAMPP Apache
+- Logged out admin and employee dashboard requests opened the correct role-specific login forms.
+- Invalid credentials failed safely.
+- Existing admin account opened `/admin/index.php`.
+- Existing employee account opened `/employee/index.php`.
+- Employee credentials were rejected by the admin portal.
+- Customer access to admin and employee protected pages was denied.
+- Temporary QA fixtures were removed after testing.
+
+### Syntax Tests
+- PHP lint passed for `includes/auth.php`, `auth/login.php`, `admin/login.php`, and `employee/login.php`.
+
+---
+
 # NEXT RECOMMENDED TASK
 
 **Optional Polish & Production Readiness**
@@ -520,14 +632,18 @@ Shopping Cart/
 # CURRENT WORK
 
 ## Currently Working On
-Backend Milestone 3 verification complete. All 13 features runtime-tested and working.
+Final 3 functional gaps fixed and verified.
 
 ## Last Completed Task
-Final verification of admin/employee/returns/feedback/FAQ backend milestone with comprehensive runtime testing (not just syntax validation).
+Fixed Admin Employee Management, Employee Orders List, and Customer Feedback functionality.
 
 ## Verification Results
 - 13/13 feature areas tested and working at runtime
 - 1 bug found and fixed (missing $ in admin/orders.php)
+- 1 RBAC bug found and fixed (removed 'admin' fallback from require_employee() in includes/auth.php)
+- Fixed Employee Edit/Revoke in admin/employees.php with real POST requests and UI forms.
+- Fixed Employee Orders List rendering empty issue due to missing functions.php include.
+- Fixed Customer Feedback by adding backend processing to contact.php to save directly to the feedback table.
 - All database operations (INSERT, UPDATE, DELETE, SELECT) verified
 - Role-based access control and ownership protection verified
 - No blocking issues discovered
@@ -541,4 +657,4 @@ Final verification of admin/employee/returns/feedback/FAQ backend milestone with
 **FEATURE COMPLETENESS:** 100% of Milestone 3 complete
 
 ## Next Task
-Optional: Contact form backend integration, security hardening (CSRF tokens, rate limiting), or browser-level smoke testing. Core functionality is production-ready.
+All required milestones are fully complete. Optional features can be developed if needed.

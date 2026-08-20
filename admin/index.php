@@ -1,5 +1,6 @@
 ﻿<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
 
 $pageTitle = 'Admin Dashboard - Arts';
@@ -20,6 +21,7 @@ $adminNav = [
     'feedback.php' => 'Feedback',
     'faq.php' => 'FAQ'
 ];
+$dashboardStats = get_admin_dashboard_stats();
 ?>
 <main class="customer-page admin-page">
     <div class="container">
@@ -41,12 +43,12 @@ $adminNav = [
             <div class="customer-content">
                 <h1 class="customer-page-title">Admin Dashboard</h1>
                 <div class="dashboard-stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="stat-card"><div class="stat-value">124</div><div class="stat-label">Total Products</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#c53030;">12</div><div class="stat-label">Low Stock</div></div>
-                    <div class="stat-card"><div class="stat-value">845</div><div class="stat-label">Total Orders</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#dd6b20;">34</div><div class="stat-label">Pending Orders</div></div>
-                    <div class="stat-card"><div class="stat-value">1,204</div><div class="stat-label">Customers</div></div>
-                    <div class="stat-card"><div class="stat-value">8</div><div class="stat-label">Employees</div></div>
+                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_products'] ?></div><div class="stat-label">Total Products</div></div>
+                    <div class="stat-card"><div class="stat-value" style="color:#c53030;"><?= $dashboardStats['low_stock_products'] ?></div><div class="stat-label">Low Stock</div></div>
+                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_orders'] ?></div><div class="stat-label">Total Orders</div></div>
+                    <div class="stat-card"><div class="stat-value" style="color:#dd6b20;"><?= $dashboardStats['pending_orders'] ?></div><div class="stat-label">Pending Orders</div></div>
+                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_customers'] ?></div><div class="stat-label">Customers</div></div>
+                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_employees'] ?></div><div class="stat-label">Employees</div></div>
                 </div>
                 
                 <h2 class="customer-section-title">Quick Navigation</h2>

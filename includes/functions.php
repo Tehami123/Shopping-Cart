@@ -51,6 +51,30 @@ function get_product_categories(): array
     return $categories;
 }
 
+function get_admin_dashboard_stats(): array
+{
+    $db = ensure_db_connection();
+    $stmt = $db->query(
+        'SELECT
+            (SELECT COUNT(*) FROM products) AS total_products,
+            (SELECT COUNT(*) FROM products WHERE stock <= 5 AND status = "active") AS low_stock_products,
+            (SELECT COUNT(*) FROM orders) AS total_orders,
+            (SELECT COUNT(*) FROM orders WHERE status = "pending") AS pending_orders,
+            (SELECT COUNT(*) FROM customers) AS total_customers,
+            (SELECT COUNT(*) FROM users WHERE role = "employee" AND status = "active") AS total_employees'
+    );
+    $stats = $stmt->fetch();
+
+    return [
+        'total_products' => (int) ($stats['total_products'] ?? 0),
+        'low_stock_products' => (int) ($stats['low_stock_products'] ?? 0),
+        'total_orders' => (int) ($stats['total_orders'] ?? 0),
+        'pending_orders' => (int) ($stats['pending_orders'] ?? 0),
+        'total_customers' => (int) ($stats['total_customers'] ?? 0),
+        'total_employees' => (int) ($stats['total_employees'] ?? 0),
+    ];
+}
+
 function legacy_art_id_to_product_lookup(string $value): ?array
 {
     $value = trim($value);
@@ -135,9 +159,12 @@ function get_all_products(?string $category = null, ?string $keyword = null): ar
         $params[':category'] = trim($category);
     }
 
-    if ($keyword !== null && trim($keyword) !== '') {
-        $sql .= ' AND (p.name LIKE :term OR p.description LIKE :term OR c.name LIKE :term)';
-        $params[':term'] = '%' . trim($keyword) . '%';
+        if ($keyword !== null && trim($keyword) !== '') {
+            $sql .= ' AND (p.name LIKE :name_term OR p.description LIKE :description_term OR c.name LIKE :category_term)';
+            $keywordTerm = '%' . trim($keyword) . '%';
+            $params[':name_term'] = $keywordTerm;
+            $params[':description_term'] = $keywordTerm;
+            $params[':category_term'] = $keywordTerm;
     }
 
     $sql .= ' ORDER BY p.product_id ASC';

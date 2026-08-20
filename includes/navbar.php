@@ -15,16 +15,12 @@ $navUser = current_user();
     >
 </a>
 
-        <div class="search-box" role="search">
-            <span class="search-icon">⌕</span>
-            <input type="text" placeholder="Search products..." aria-label="Search products">
-        </div>
-
         <nav class="main-nav" aria-label="Main navigation">
             <a href="<?= $basePath ?>/index.php">Home</a>
             <a href="<?= $basePath ?>/products.php">Shop</a>
-            <a href="<?= $basePath ?>/search.php">Search</a>
             <a href="<?= $basePath ?>/faq.php">FAQ</a>
+            <a href="<?= $basePath ?>/about.php">About Us</a>
+            <a href="<?= $basePath ?>/contact.php">Contact Us</a>
             <?php if ($navRole === 'customer'): ?>
                 <a href="<?= $basePath ?>/customer/index.php">My Account</a>
             <?php elseif ($navRole === 'employee'): ?>

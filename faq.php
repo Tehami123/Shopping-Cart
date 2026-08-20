@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/functions.php';
 $pageTitle = 'FAQ - Arts';
 $basePath = '/Shopping%20Cart';
 require_once __DIR__ . '/includes/header.php';
@@ -25,8 +26,8 @@ if (empty($faqs)) {
         <div class="faq-list">
             <?php foreach ($faqs as $faq): ?>
                 <details class="faq-item">
-                    <summary><?= htmlspecialchars($faq['question']) ?></summary>
-                    <div class="faq-answer"><?= htmlspecialchars($faq['answer']) ?></div>
+                    <summary><?= htmlspecialchars($faq['question'], ENT_QUOTES, 'UTF-8') ?></summary>
+                    <div class="faq-answer"><?= htmlspecialchars($faq['answer'], ENT_QUOTES, 'UTF-8') ?></div>
                 </details>
             <?php endforeach; ?>
         </div>

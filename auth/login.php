@@ -4,6 +4,9 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 
 $pageTitle = 'Log In - Arts';
 $basePath = '/Shopping%20Cart';
+$requestedRole = strtolower(trim((string) ($_GET['role'] ?? $_POST['role'] ?? '')));
+$requiredRole = in_array($requestedRole, ['admin', 'employee'], true) ? $requestedRole : null;
+$loginTitle = $requiredRole === 'admin' ? 'Admin Login' : ($requiredRole === 'employee' ? 'Employee Login' : 'Log In');
 
 if (is_logged_in()) {
     $role = current_user_role();
@@ -27,6 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = login_user($email, $password);
         if ($user === null) {
             $message = 'Invalid email or password.';
+        } elseif ($requiredRole !== null && $user['role'] !== $requiredRole) {
+            logout_user();
+            $message = 'These credentials are not valid for this portal.';
         } else {
             $role = $user['role'];
             if ($role === 'admin') {
@@ -78,7 +84,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
     <div class="container auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <h1 class="auth-title">Welcome Back</h1>
+                <h1 class="auth-title"><?= htmlspecialchars($loginTitle, ENT_QUOTES, 'UTF-8') ?></h1>
                 <p class="auth-subtitle">Sign in to your Arts account to continue</p>
             </div>
 
@@ -87,6 +93,9 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <?php endif; ?>
             
             <form method="POST" class="auth-form" id="loginForm">
+                <?php if ($requiredRole !== null): ?>
+                    <input type="hidden" name="role" value="<?= htmlspecialchars($requiredRole, ENT_QUOTES, 'UTF-8') ?>">
+                <?php endif; ?>
                 <div class="form-group">
                     <label for="email">Email Address <span class="required">*</span></label>
                     <input type="email" id="email" name="email" class="form-input" required placeholder="name@example.com" autofocus value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">

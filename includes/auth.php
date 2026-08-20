@@ -120,7 +120,7 @@ function require_login(string $redirectTo = '/Shopping%20Cart/auth/login.php'): 
 
 function require_role($roles, string $redirectTo = '/Shopping%20Cart/index.php'): void
 {
-    require_login();
+    require_login($redirectTo);
 
     $allowedRoles = is_array($roles) ? $roles : [$roles];
     $currentRole = current_user_role();
@@ -132,14 +132,14 @@ function require_role($roles, string $redirectTo = '/Shopping%20Cart/index.php')
     }
 }
 
-function require_admin(string $redirectTo = '/Shopping%20Cart/index.php'): void
+function require_admin(string $redirectTo = '/Shopping%20Cart/admin/login.php'): void
 {
     require_role('admin', $redirectTo);
 }
 
-function require_employee(string $redirectTo = '/Shopping%20Cart/index.php'): void
+function require_employee(string $redirectTo = '/Shopping%20Cart/employee/login.php'): void
 {
-    require_role(['employee', 'admin'], $redirectTo);
+    require_role('employee', $redirectTo);
 }
 
 function require_customer(string $redirectTo = '/Shopping%20Cart/auth/login.php'): void

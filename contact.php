@@ -3,6 +3,37 @@ $pageTitle = 'Contact Us - Arts';
 $basePath = '/Shopping%20Cart';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/functions.php';
+
+$success = false;
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (current_user_role() !== 'customer') {
+        $error = 'You must be logged in as a customer to submit feedback.';
+    } else {
+        $subject = trim($_POST['subject'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+        if (empty($message)) {
+            $error = 'Message is required.';
+        } else {
+            $db = get_db_connection();
+            $stmt = $db->prepare('SELECT customer_id FROM customers WHERE user_id = :user_id');
+            $stmt->execute([':user_id' => current_user_id()]);
+            $customerId = $stmt->fetchColumn();
+            
+            if ($customerId) {
+                $finalMessage = $subject ? "Subject: $subject\n\n$message" : $message;
+                $stmt = $db->prepare('INSERT INTO feedback (customer_id, message) VALUES (:customer_id, :message)');
+                $stmt->execute([':customer_id' => $customerId, ':message' => $finalMessage]);
+                $success = true;
+            } else {
+                $error = 'Customer profile not found.';
+            }
+        }
+    }
+}
 ?>
 
 <style>
@@ -193,7 +224,12 @@ require_once __DIR__ . '/includes/navbar.php';
 
                 <div class="ct-card ct-form">
                     <h2>Send a Message</h2>
-                    <form onsubmit="event.preventDefault(); alert('Thank you! Your message has been recorded. (Form processing is not yet connected.)'); this.reset();">
+                    <?php if ($success): ?>
+                        <div style="background: #c6f6d5; color: #22543d; padding: 12px; border-radius: 8px; margin-bottom: 16px;">Thank you! Your feedback has been submitted.</div>
+                    <?php elseif ($error): ?>
+                        <div style="background: #fed7d7; color: #9b2c2c; padding: 12px; border-radius: 8px; margin-bottom: 16px;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+                    <?php endif; ?>
+                    <form method="post">
                         <div class="form-group">
                             <label for="contact-name">Full Name</label>
                             <input type="text" id="contact-name" name="name" class="form-input" placeholder="Your name" required>
@@ -211,7 +247,6 @@ require_once __DIR__ . '/includes/navbar.php';
                             <textarea id="contact-message" name="message" class="form-textarea" rows="5" placeholder="Write your message here..." required></textarea>
                         </div>
                         <button type="submit" class="primary-button">Send Message</button>
-                        <p class="contact-form-note">This is a frontend-only form. Messages are not stored or emailed yet.</p>
                     </form>
                 </div>
             </div>
