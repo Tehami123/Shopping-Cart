@@ -7,6 +7,7 @@ $pageTitle = 'Manage Returns - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $db = get_db_connection();
 $activePage = 'returns.php';
@@ -31,23 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_return'])) {
 
 $returns = get_all_returns_for_admin();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Manage Returns</h1>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <?php render_admin_page_header('Returns', 'Review return and replacement requests and move each case to its next status.', 'Customer care workspace'); ?>
 
+                <?php if (empty($returns)): ?>
+                    <div class="admin-empty-state"><span class="admin-empty-mark">R</span><h2>No return requests</h2><p>New return and replacement requests will appear here when customers submit them.</p><a href="orders.php" class="secondary-button">Review orders</a></div>
+                <?php else: ?>
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -89,8 +82,8 @@ $returns = get_all_returns_for_admin();
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+                <?php endif; ?>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

@@ -7,6 +7,7 @@ $pageTitle = 'Admin Dashboard - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $activePage = 'index.php';
 $adminNav = [
@@ -23,45 +24,47 @@ $adminNav = [
 ];
 $dashboardStats = get_admin_dashboard_stats();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info">
-                        <strong style="color:white;">Admin Portal</strong>
-                        <span style="color:#e2e8f0;">System Administrator</span>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <?php render_admin_page_header('Admin Dashboard', 'A focused view of your store operations and the work that needs attention today.', 'Overview'); ?>
+
+            <section class="admin-stat-grid" aria-label="Store overview">
+                <article class="admin-stat-card admin-stat-card-primary"><span class="admin-stat-label">Catalog</span><strong><?= $dashboardStats['total_products'] ?></strong><span>Total products</span><a href="products.php">Manage catalog</a></article>
+                <article class="admin-stat-card"><span class="admin-stat-label">Orders</span><strong><?= $dashboardStats['total_orders'] ?></strong><span>Orders recorded</span><a href="orders.php">Review orders</a></article>
+                <article class="admin-stat-card"><span class="admin-stat-label">Customers</span><strong><?= $dashboardStats['total_customers'] ?></strong><span>Customer accounts</span><a href="customers.php">View directory</a></article>
+                <article class="admin-stat-card"><span class="admin-stat-label">Team</span><strong><?= $dashboardStats['total_employees'] ?></strong><span>Employee accounts</span><a href="employees.php">Manage team</a></article>
+            </section>
+
+            <section class="admin-dashboard-grid">
+                <article class="admin-panel admin-attention-panel">
+                    <div class="admin-panel-heading"><div><span class="admin-eyebrow">Needs attention</span><h2>Keep the store moving</h2></div><span class="admin-panel-kicker">Live signals</span></div>
+                    <div class="admin-attention-list">
+                        <a href="inventory.php" class="admin-attention-item <?= (int) $dashboardStats['low_stock_products'] > 0 ? 'is-alert' : 'is-clear' ?>"><span class="admin-attention-icon">!</span><span><strong><?= $dashboardStats['low_stock_products'] ?> low-stock products</strong><small>Check availability before the next sale.</small></span><span class="admin-arrow">-&gt;</span></a>
+                        <a href="orders.php?status=pending" class="admin-attention-item <?= (int) $dashboardStats['pending_orders'] > 0 ? 'is-alert' : 'is-clear' ?>"><span class="admin-attention-icon">~</span><span><strong><?= $dashboardStats['pending_orders'] ?> pending orders</strong><small>Orders waiting for the next fulfillment step.</small></span><span class="admin-arrow">-&gt;</span></a>
+                        <a href="returns.php" class="admin-attention-item is-neutral"><span class="admin-attention-icon">&lt;</span><span><strong>Returns queue</strong><small>Review customer requests when they arrive.</small></span><span class="admin-arrow">-&gt;</span></a>
                     </div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Admin Dashboard</h1>
-                <div class="dashboard-stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_products'] ?></div><div class="stat-label">Total Products</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#c53030;"><?= $dashboardStats['low_stock_products'] ?></div><div class="stat-label">Low Stock</div></div>
-                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_orders'] ?></div><div class="stat-label">Total Orders</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#dd6b20;"><?= $dashboardStats['pending_orders'] ?></div><div class="stat-label">Pending Orders</div></div>
-                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_customers'] ?></div><div class="stat-label">Customers</div></div>
-                    <div class="stat-card"><div class="stat-value"><?= $dashboardStats['total_employees'] ?></div><div class="stat-label">Employees</div></div>
-                </div>
-                
-                <h2 class="customer-section-title">Quick Navigation</h2>
-                <div class="quick-links-grid">
-                    <?php foreach(array_slice($adminNav, 1, 6) as $url => $label): ?>
-                        <a href="<?= $url ?>" class="quick-link-card">
-                            <span class="icon">&#128193;</span>
-                            <span><?= $label ?></span>
-                        </a>
+                </article>
+                <article class="admin-panel admin-operations-panel">
+                    <div class="admin-panel-heading"><div><span class="admin-eyebrow">Shortcuts</span><h2>Quick management</h2></div></div>
+                    <div class="admin-shortcut-list">
+                        <?php foreach (array_slice($adminNav, 1, 4) as $url => $label): ?>
+                            <a href="<?= $url ?>"><span class="admin-shortcut-index">0<?= array_search($url, array_keys($adminNav), true) ?></span><strong><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></strong><span class="admin-arrow">-&gt;</span></a>
+                        <?php endforeach; ?>
+                    </div>
+                </article>
+            </section>
+
+            <section class="admin-panel admin-management-panel">
+                <div class="admin-panel-heading"><div><span class="admin-eyebrow">Workspace map</span><h2>Management areas</h2></div><p>Move between the parts of the Arts operation without losing context.</p></div>
+                <div class="admin-management-grid">
+                    <?php foreach (array_slice($adminNav, 1) as $url => $label): ?>
+                        <a href="<?= $url ?>"><strong><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></strong><span>Open workspace <span class="admin-arrow">-&gt;</span></span></a>
                     <?php endforeach; ?>
                 </div>
-            </div>
-        </div>
+            </section>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

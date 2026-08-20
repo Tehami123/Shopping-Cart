@@ -7,6 +7,7 @@ $pageTitle = 'Manage Products - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $db = get_db_connection();
 $activePage = 'products.php';
@@ -94,38 +95,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNER JOIN categories c ON c.category_id = p.category_id ORDER BY p.product_id DESC')->fetchAll();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <div class="customer-header-actions">
-                    <h1 class="customer-page-title">Manage Products</h1>
-                    <button class="primary-button" onclick="document.getElementById('addProductModal').style.display='flex'">Add Product</button>
-                </div>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <div class="admin-page-header admin-page-header-with-action">
+                <div><span class="admin-eyebrow">Catalog workspace</span><h1>Products</h1><p>Manage the catalog, pricing, availability, and product presentation.</p></div>
+                <button class="primary-button" onclick="document.getElementById('addProductModal').style.display='flex'">Add product</button>
+            </div>
                 <?php if ($successMessage !== ''): ?><div class="alert-box" style="margin-bottom:16px;"><?= htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                 <?php if ($errorMessage !== ''): ?><div class="error-box" style="margin-bottom:16px;"><?= htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                            <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
                             <?php foreach ($products as $product): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
                                     <td><?= htmlspecialchars($product['category_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= format_currency((float) $product['price']) ?></td>
                                     <td><?= (int) $product['stock'] ?></td>
@@ -147,8 +136,7 @@ $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNE
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </main>
 

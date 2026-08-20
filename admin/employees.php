@@ -7,6 +7,7 @@ $pageTitle = 'Manage Employees - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $activePage = 'employees.php';
 $adminNav = [
@@ -61,25 +62,14 @@ $employees = $db->query(
      ORDER BY u.user_id DESC'
 )->fetchAll();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <div class="customer-header-actions">
-                    <h1 class="customer-page-title">Manage Employees</h1>
-                    <button class="primary-button" onclick="document.getElementById('addEmpModal').style.display='flex'">Create Employee</button>
-                </div>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <div class="admin-page-header admin-page-header-with-action">
+                <div><span class="admin-eyebrow">People workspace</span><h1>Employees</h1><p>Control staff access, profile details, and account status.</p></div>
+                <button class="primary-button" onclick="document.getElementById('addEmpModal').style.display='flex'">Create employee</button>
+            </div>
                 
                 <div class="table-responsive">
                     <table class="admin-table">
@@ -89,7 +79,7 @@ $employees = $db->query(
                         <tbody>
                             <?php foreach ($employees as $employee): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars(trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')) ?: 'Employee account', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars(trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')) ?: 'Employee account', ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted">Staff account</small></td>
                                     <td><?= htmlspecialchars($employee['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= date('d M Y', strtotime($employee['hire_date'] ?? $employee['created_at'])) ?></td>
                                     <td><span class="status-badge <?= $employee['status'] === 'active' ? 'status-delivered' : 'status-cancelled' ?>"><?= ucfirst(htmlspecialchars($employee['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
@@ -132,8 +122,7 @@ $employees = $db->query(
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </main>
 

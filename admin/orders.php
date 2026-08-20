@@ -7,6 +7,7 @@ $pageTitle = 'Manage Orders - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $db = get_db_connection();
 $activePage = 'orders.php';
@@ -39,22 +40,11 @@ $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $orders = $stmt->fetchAll();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Manage Orders</h1>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <?php render_admin_page_header('Orders', 'Track fulfillment, payment readiness, and delivery progress from one workspace.', 'Fulfillment workspace'); ?>
 
                 <div class="admin-filter-bar">
                     <form method="GET" style="display:flex; gap:16px; align-items:end; flex-wrap:wrap;">
@@ -90,8 +80,8 @@ $orders = $stmt->fetchAll();
                         <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted">Order <?= (int) $order['order_id'] ?></small></td>
+                                    <td><strong><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
                                     <td><?= date('d M Y', strtotime($order['order_date'])) ?></td>
                                     <td><?= format_currency((float) $order['total_amount']) ?></td>
                                     <td><span class="status-badge <?= get_status_badge_class($order['payment_status'], 'payment') ?>"><?= ucfirst(htmlspecialchars($order['payment_status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
@@ -115,8 +105,7 @@ $orders = $stmt->fetchAll();
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

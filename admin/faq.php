@@ -7,6 +7,7 @@ $pageTitle = 'Manage FAQ - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $db = get_db_connection();
 $activePage = 'faq.php';
@@ -41,26 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $faqs = get_all_faqs_for_admin('all');
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <div class="customer-header-actions">
-                    <h1 class="customer-page-title">Manage FAQ</h1>
-                    <button class="primary-button" onclick="document.getElementById('addFaqModal').style.display='flex'">Add FAQ</button>
-                </div>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <div class="admin-page-header admin-page-header-with-action">
+                <div><span class="admin-eyebrow">Content workspace</span><h1>FAQ</h1><p>Keep customer answers clear, current, and ready to publish.</p></div>
+                <button class="primary-button" onclick="document.getElementById('addFaqModal').style.display='flex'">Add question</button>
+            </div>
 
+                <?php if (empty($faqs)): ?>
+                    <div class="admin-empty-state"><span class="admin-empty-mark">?</span><h2>No FAQ entries yet</h2><p>Create the first answer to help customers find their way around the store.</p><button class="secondary-button" onclick="document.getElementById('addFaqModal').style.display='flex'">Create first FAQ</button></div>
+                <?php else: ?>
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -89,8 +82,8 @@ $faqs = get_all_faqs_for_admin('all');
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+                <?php endif; ?>
+        </section>
     </div>
 </main>
 

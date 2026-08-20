@@ -7,6 +7,7 @@ $pageTitle = 'Manage Customers - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $activePage = 'customers.php';
 $adminNav = [
@@ -22,35 +23,23 @@ $customers = $db->query(
      ORDER BY c.customer_id DESC'
 )->fetchAll();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Manage Customers</h1>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <?php render_admin_page_header('Customers', 'A clear directory of customer accounts, contact details, and account status.', 'Customer workspace'); ?>
                 
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>Customer</th><th>Email</th><th>Phone</th><th>City</th><th>Registered Date</th><th>Status</th><th>Action</th></tr>
+                            <tr><th>Customer</th><th>Email</th><th>Phone</th><th>Registered Date</th><th>Status</th><th>Action</th></tr>
                         </thead>
                         <tbody>
                             <?php foreach ($customers as $customer): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($customer['email'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted"><?= htmlspecialchars($customer['city'], ENT_QUOTES, 'UTF-8') ?></small></td>
+                                    <td><a class="admin-table-link" href="mailto:<?= htmlspecialchars($customer['email'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($customer['email'], ENT_QUOTES, 'UTF-8') ?></a></td>
                                     <td><?= htmlspecialchars($customer['phone'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($customer['city'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= date('d M Y', strtotime($customer['created_at'])) ?></td>
                                     <td><span class="status-badge <?= $customer['status'] === 'active' ? 'status-delivered' : 'status-cancelled' ?>"><?= ucfirst(htmlspecialchars($customer['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
                                     <td><button class="text-button">View</button></td>
@@ -59,8 +48,7 @@ $customers = $db->query(
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

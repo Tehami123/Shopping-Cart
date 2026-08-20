@@ -7,6 +7,7 @@ $pageTitle = 'Inventory Management - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/admin-shell.php';
 
 $db = get_db_connection();
 $activePage = 'inventory.php';
@@ -34,36 +35,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_stock'])) {
 
 $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNER JOIN categories c ON c.category_id = p.category_id ORDER BY p.product_id ASC')->fetchAll();
 ?>
-<main class="customer-page admin-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: var(--brand-primary-dark); color: white;">
-                    <div class="info"><strong style="color:white;">Admin Portal</strong></div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($adminNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Inventory Management</h1>
+<main class="admin-app">
+    <div class="admin-layout">
+        <?php render_admin_sidebar($adminNav, $activePage, $basePath); ?>
+        <section class="admin-main">
+            <?php render_admin_page_header('Inventory', 'Monitor stock levels and make availability updates before products run low.', 'Operations workspace'); ?>
                 <?php if ($successMessage !== ''): ?><div class="alert-box" style="margin-bottom:16px;"><?= htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                 <?php if ($errorMessage !== ''): ?><div class="error-box" style="margin-bottom:16px;"><?= htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>Product ID</th><th>Product</th><th>Current Stock</th><th>Stock Status</th><th>Update Stock</th></tr>
+                            <tr><th>Product</th><th>Available units</th><th>Stock health</th><th>Update level</th></tr>
                         </thead>
                         <tbody>
                             <?php foreach ($products as $product): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= (int) $product['stock'] ?></td>
+                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
+                                    <td><strong class="admin-stock-number"><?= (int) $product['stock'] ?></strong><span class="admin-table-muted"> units</span></td>
                                     <td><span class="status-badge <?= get_status_badge_class(normalize_product_stock_label((int) $product['stock']), 'order') ?>"><?= htmlspecialchars(normalize_product_stock_label((int) $product['stock']), ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td>
                                         <form method="POST" style="display:flex; gap:8px; align-items:center;">
@@ -78,8 +67,7 @@ $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNE
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>
