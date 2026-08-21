@@ -517,6 +517,7 @@ function get_status_badge_class(string $status, string $group = 'order'): string
     $map = [
         'pending' => 'payment-pending',
         'confirmed' => 'status-processing',
+        'processing' => 'status-processing',
         'dispatched' => 'status-processing',
         'delivered' => 'status-delivered',
         'cancelled' => 'status-cancelled',

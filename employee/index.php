@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_employee();
 
@@ -19,7 +19,7 @@ $db = get_db_connection();
 $employeeStats = $db->query(
     'SELECT
         (SELECT COUNT(*) FROM orders WHERE status = "pending") AS pending_orders,
-        (SELECT COUNT(*) FROM orders WHERE status IN ("pending", "confirmed") AND payment_status = "cleared") AS ready_for_dispatch,
+        (SELECT COUNT(*) FROM orders WHERE status = "processing" AND (payment_status = "cleared" OR payment_method = "pay_on_delivery")) AS ready_for_dispatch,
         (SELECT COUNT(*) FROM orders WHERE status = "dispatched") AS dispatched_orders,
         (SELECT COUNT(*) FROM orders WHERE status = "dispatched") AS deliveries_pending'
 )->fetch();

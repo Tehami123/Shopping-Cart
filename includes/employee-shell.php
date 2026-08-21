@@ -21,7 +21,10 @@ function render_employee_sidebar(array $employeeNav, string $activePage, string 
         </nav>
         <div class="employee-sidebar-footer">
             <div class="employee-user-chip"><span class="employee-user-avatar">E</span><span><strong>Employee Portal</strong><small>Operations access</small></span></div>
-            <a href="<?= $basePath ?>/auth/logout.php" class="employee-logout">Log out</a>
+            <div style="display: flex; gap: 8px;">
+                <a href="<?= $basePath ?>/employee/profile.php" class="employee-logout" style="flex: 1; text-align: center;">Profile</a>
+                <a href="<?= $basePath ?>/auth/logout.php" class="employee-logout" style="flex: 1; text-align: center;">Log out</a>
+            </div>
         </div>
     </aside>
     <?php

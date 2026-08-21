@@ -38,7 +38,7 @@ $orders = $stmt->fetchAll();
                         <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr>
-                                    <td><strong class="employee-primary-cell"><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong><small class="employee-table-muted">Order <?= (int) $order['order_id'] ?></small></td>
+                                    <td><a href="order.php?id=<?= (int) $order['order_id'] ?>" style="text-decoration:none;"><strong class="employee-primary-cell" style="color:var(--c-primary);"><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong><small class="employee-table-muted">Order <?= (int) $order['order_id'] ?></small></a></td>
                                     <td><strong><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
                                     <td><?= date('d M Y', strtotime($order['order_date'])) ?></td>
                                     <td><span class="status-badge <?= get_status_badge_class($order['payment_status'], 'payment') ?>"><?= ucfirst(htmlspecialchars($order['payment_status'], ENT_QUOTES, 'UTF-8')) ?></span></td>

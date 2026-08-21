@@ -141,11 +141,11 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                         </span>
                                     </div>
                                     <div class="ca-order-actions">
-                                        <button class="order-action-btn" type="button" onclick="alert('Order details view coming soon.');">View Details</button>
+                                        <a href="order.php?id=<?= (int) $order['order_id'] ?>" class="order-action-btn" style="display: inline-block; text-align: center;display:flex; justify-content: center; align-items: center; text-decoration: none;">View Details</a>
                                         <?php if ($canCancel): ?>
                                             <form method="POST" style="display: inline;">
                                                 <input type="hidden" name="cancel_order_id" value="<?= (int) $order['order_id'] ?>">
-                                                <button type="submit" class="cancel-order-btn" onclick="return confirm('Are you sure you want to cancel this order?');">Cancel Order</button>
+                                                <button type="submit" style="background: red; color: white;" class="cancel-order-btn" onclick="return confirm('Are you sure you want to cancel this order?');">Cancel Order</button>
                                             </form>
                                         <?php endif; ?>
                                     </div>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_employee();
 
@@ -20,7 +20,7 @@ $employeeNav = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['dispatch_order'])) {
     $orderId = (int) ($_POST['order_id'] ?? 0);
     if ($orderId > 0) {
-        $db->prepare('UPDATE orders SET status = :status, dispatch_date = NOW() WHERE order_id = :order_id AND status IN ("pending", "confirmed") AND payment_status = "cleared"')->execute([
+        $db->prepare('UPDATE orders SET status = :status, dispatch_date = NOW() WHERE order_id = :order_id AND status = "processing" AND (payment_status = "cleared" OR payment_method = "pay_on_delivery")')->execute([
             ':status' => 'dispatched',
             ':order_id' => $orderId,
         ]);
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['dispatch_order'])) {
 }
 
 $orders = $db->query(
-    'SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE o.status IN ("pending", "confirmed") OR (o.status = "dispatched" AND o.payment_status = "cleared") ORDER BY o.order_id DESC'
+    'SELECT o.*, CONCAT(c.first_name, " ", c.last_name) AS customer_name FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = "processing" OR (o.status = "dispatched" AND (o.payment_status = "cleared" OR o.payment_method = "pay_on_delivery")) ORDER BY o.order_id DESC'
 )->fetchAll();
 ?>
 <main class="employee-app">
@@ -37,7 +37,7 @@ $orders = $db->query(
         <section class="employee-main">
             <?php render_employee_page_header('Dispatch', 'Confirm payment readiness, then move eligible orders into delivery.', 'Fulfillment workspace'); ?>
                 <div class="policy-notice" style="border-left-color:#dd6b20; background:#feebc8; color:#7b341e;">
-                    <p><strong>Note:</strong> Credit Card/Cheque orders cannot be dispatched until payment is cleared.</p>
+                    <p><strong>Note:</strong> Credit Card/Cheque orders cannot be dispatched until payment is cleared. Pay on Delivery is exempt.</p>
                 </div>
 
                 <?php if (empty($orders)): ?>
@@ -49,10 +49,10 @@ $orders = $db->query(
                             <div class="employee-workflow-main"><span class="employee-workflow-label">Order</span><strong><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong><span><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></span></div>
                             <div class="employee-workflow-meta"><span><small>Delivery</small><?= ucfirst(htmlspecialchars($order['delivery_type'], ENT_QUOTES, 'UTF-8')) ?></span><span><small>Payment</small><span class="status-badge <?= get_status_badge_class($order['payment_status'], 'payment') ?>"><?= ucfirst(htmlspecialchars($order['payment_status'], ENT_QUOTES, 'UTF-8')) ?></span></span><span><small>Status</small><span class="status-badge <?= get_status_badge_class($order['status'], 'order') ?>"><?= ucfirst(htmlspecialchars($order['status'], ENT_QUOTES, 'UTF-8')) ?></span></span></div>
                             <div class="employee-workflow-action">
-                                <?php if ($order['payment_status'] === 'cleared' && !in_array($order['status'], ['dispatched', 'delivered'], true)): ?>
+                                <?php if (($order['payment_status'] === 'cleared' || $order['payment_method'] === 'pay_on_delivery') && $order['status'] === 'processing'): ?>
                                     <form method="POST"><input type="hidden" name="dispatch_order" value="1"><input type="hidden" name="order_id" value="<?= (int) $order['order_id'] ?>"><button type="submit" class="primary-button">Dispatch order</button></form>
                                 <?php else: ?>
-                                    <button class="secondary-button" disabled>Awaiting payment</button>
+                                    <a href="order.php?id=<?= (int) $order['order_id'] ?>" class="secondary-button">View Details</a>
                                 <?php endif; ?>
                             </div>
                         </article>

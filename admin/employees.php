@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $employees = $db->query(
-    'SELECT u.email, u.status, e.first_name, e.last_name, e.hire_date, u.created_at
+    'SELECT u.user_id, e.employee_id, u.email, u.status, e.first_name, e.last_name, e.hire_date, u.created_at
      FROM users u
      LEFT JOIN employees e ON e.user_id = u.user_id
      WHERE u.role = "employee"
@@ -79,11 +79,21 @@ $employees = $db->query(
                         <tbody>
                             <?php foreach ($employees as $employee): ?>
                                 <tr>
-                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars(trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')) ?: 'Employee account', ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted">Staff account</small></td>
+                                    <td>
+                                        <?php if ($employee['user_id']): ?>
+                                            <a href="employee-details.php?id=<?= (int)$employee['user_id'] ?>" style="text-decoration:none; color:inherit;">
+                                                <strong class="admin-primary-cell"><?= htmlspecialchars(trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')) ?: 'Employee account', ENT_QUOTES, 'UTF-8') ?></strong>
+                                            </a>
+                                        <?php else: ?>
+                                            <strong class="admin-primary-cell"><?= htmlspecialchars(trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? '')) ?: 'Employee account', ENT_QUOTES, 'UTF-8') ?></strong>
+                                        <?php endif; ?>
+                                        <br><small class="admin-table-muted">Staff account</small>
+                                    </td>
                                     <td><?= htmlspecialchars($employee['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= date('d M Y', strtotime($employee['hire_date'] ?? $employee['created_at'])) ?></td>
                                     <td><span class="status-badge <?= $employee['status'] === 'active' ? 'status-delivered' : 'status-cancelled' ?>"><?= ucfirst(htmlspecialchars($employee['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
                                     <td>
+                                        <a href="employee-details.php?id=<?= (int)$employee['user_id'] ?>" class="text-button" style="text-decoration:none;">View</a> | 
                                         <button type="button" class="text-button" onclick="document.getElementById('editEmpModal_<?= md5($employee['email']) ?>').style.display='flex'">Edit</button> | 
                                         <form method="post" style="display:inline;" onsubmit="return confirm('Revoke this employee?');">
                                             <input type="hidden" name="action" value="revoke">

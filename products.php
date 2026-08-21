@@ -397,14 +397,7 @@ $categoryDisplay = $categoryFilter !== 'All' ? normalize_category_name($category
             <button type="button" class="page-link" id="shopClearFilters" style="cursor: pointer;">Clear search &amp; filters</button>
         </div>
 
-        <!-- Pagination -->
-        <div class="pagination">
-            <a href="#" class="page-link prev disabled" aria-disabled="true">← Prev</a>
-            <a href="#" class="page-link active" aria-current="page">1</a>
-            <a href="#" class="page-link">2</a>
-            <a href="#" class="page-link">3</a>
-            <a href="#" class="page-link next">Next →</a>
-        </div>
+        
     </div>
 </main>
 

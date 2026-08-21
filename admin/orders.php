@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
@@ -80,7 +80,7 @@ $orders = $stmt->fetchAll();
                         <tbody>
                             <?php foreach ($orders as $order): ?>
                                 <tr>
-                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted">Order <?= (int) $order['order_id'] ?></small></td>
+                                    <td><a href="order-details.php?id=<?= (int) $order['order_id'] ?>" style="text-decoration:none; color:inherit;"><strong class="admin-primary-cell"><?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></strong></a><br><small class="admin-table-muted">Order <?= (int) $order['order_id'] ?></small></td>
                                     <td><strong><?= htmlspecialchars($order['customer_name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
                                     <td><?= date('d M Y', strtotime($order['order_date'])) ?></td>
                                     <td><?= format_currency((float) $order['total_amount']) ?></td>
@@ -93,11 +93,13 @@ $orders = $stmt->fetchAll();
                                             <select name="status" class="form-select" style="min-width:120px;">
                                                 <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
                                                 <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
+                                                <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Processing</option>
                                                 <option value="dispatched" <?= $order['status'] === 'dispatched' ? 'selected' : '' ?>>Dispatched</option>
                                                 <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Delivered</option>
                                                 <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                                             </select>
                                             <button type="submit" name="admin_order_status" value="1" class="secondary-button" style="padding:4px 8px; font-size:0.8rem;">Update</button>
+                                            <a href="order-details.php?id=<?= (int) $order['order_id'] ?>" class="primary-button" style="padding:4px 8px; font-size:0.8rem; text-decoration:none;">View Details</a>
                                         </form>
                                     </td>
                                 </tr>

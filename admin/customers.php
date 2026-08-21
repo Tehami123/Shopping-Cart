@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
@@ -17,7 +17,7 @@ $adminNav = [
 ];
 $db = get_db_connection();
 $customers = $db->query(
-    'SELECT c.first_name, c.last_name, c.phone, c.city, c.created_at, u.email, u.status
+    'SELECT c.customer_id, c.first_name, c.last_name, c.phone, c.city, c.created_at, u.email, u.status
      FROM customers c
      INNER JOIN users u ON u.user_id = c.user_id
      ORDER BY c.customer_id DESC'
@@ -37,12 +37,12 @@ $customers = $db->query(
                         <tbody>
                             <?php foreach ($customers as $customer): ?>
                                 <tr>
-                                    <td><strong class="admin-primary-cell"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?></strong><small class="admin-table-muted"><?= htmlspecialchars($customer['city'], ENT_QUOTES, 'UTF-8') ?></small></td>
+                                    <td><a href="customer-details.php?id=<?= (int)$customer['customer_id'] ?>" style="text-decoration:none; color:inherit;"><strong class="admin-primary-cell"><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?></strong></a><br><small class="admin-table-muted"><?= htmlspecialchars($customer['city'], ENT_QUOTES, 'UTF-8') ?></small></td>
                                     <td><a class="admin-table-link" href="mailto:<?= htmlspecialchars($customer['email'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($customer['email'], ENT_QUOTES, 'UTF-8') ?></a></td>
                                     <td><?= htmlspecialchars($customer['phone'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= date('d M Y', strtotime($customer['created_at'])) ?></td>
                                     <td><span class="status-badge <?= $customer['status'] === 'active' ? 'status-delivered' : 'status-cancelled' ?>"><?= ucfirst(htmlspecialchars($customer['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
-                                    <td><button class="text-button">View</button></td>
+                                    <td><a href="customer-details.php?id=<?= (int)$customer['customer_id'] ?>" class="text-button" style="text-decoration:none;">View</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
