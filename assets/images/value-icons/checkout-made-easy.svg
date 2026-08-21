@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Checkout made easy</title>
+  <desc id="desc">A boutique shopping basket with a simple check mark</desc>
+  <path d="M13 25h38l-4 27H17z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M22 25c0-9 4-14 10-14s10 5 10 14" fill="none" stroke="#4b2685" stroke-width="4" stroke-linecap="round"/>
+  <path d="m24 39 6 6 12-13" fill="none" stroke="#a64d73" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19 56h26" stroke="#f1b86b" stroke-width="3" stroke-linecap="round"/>
+</svg>

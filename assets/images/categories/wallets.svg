@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Wallet</title>
+  <desc id="desc">A compact lavender wallet with a secure clasp</desc>
+  <path d="M30 39c0-7 5-12 12-12h74c8 0 14 6 14 14v48c0 7-6 13-13 13H43c-7 0-13-6-13-13Z" fill="#c9a7e8" stroke="#4b2685" stroke-width="3"/>
+  <path d="M30 48h78c11 0 18 6 18 15v15H91c-8 0-14-6-14-14s6-14 14-14h35" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M92 55h34v23H92c-6 0-11-5-11-11s5-12 11-12Z" fill="#fffaf3" stroke="#4b2685" stroke-width="3"/>
+  <circle cx="99" cy="67" r="4" fill="#f1b86b"/>
+  <path d="M44 39h35" stroke="#fffaf3" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+  <path d="M35 103h90" stroke="#4b2685" stroke-width="3" stroke-linecap="round"/>
+</svg>

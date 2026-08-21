@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Browse with ease</title>
+  <desc id="desc">A small open collection book with a bookmark</desc>
+  <path d="M10 15c10-4 17-2 22 3v34c-5-5-12-7-22-3z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M54 15c-10-4-17-2-22 3v34c5-5 12-7 22-3z" fill="#fffaf3" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M32 18v34" stroke="#4b2685" stroke-width="3"/>
+  <path d="M16 24c4-1 8-1 12 1M16 31c4-1 8-1 12 1M40 25c3-2 6-2 9-1M40 32c3-2 6-2 9-1" fill="none" stroke="#c9a7e8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M43 9h10v18l-5-4-5 4z" fill="#a64d73" stroke="#4b2685" stroke-width="2" stroke-linejoin="round"/>
+</svg>

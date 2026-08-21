@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Wrapped gift</title>
+  <desc id="desc">A warm purple wrapped gift with a decorative bow</desc>
+  <path d="M35 46h90v55H35z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M30 38h100v16H30z" rx="4" fill="#c9a7e8" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M78 38v63" stroke="#5f33a8" stroke-width="6"/>
+  <path d="M40 72h80" stroke="#fffaf3" stroke-width="4" opacity=".8"/>
+  <path d="M79 38c-4-17-24-22-30-10-5 10 10 16 30 10Z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <path d="M81 38c4-17 24-22 30-10 5 10-10 16-30 10Z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <circle cx="80" cy="39" r="7" fill="#f1b86b" stroke="#4b2685" stroke-width="3"/>
+  <path d="M35 101h90" stroke="#4b2685" stroke-width="3" stroke-linecap="round"/>
+</svg>

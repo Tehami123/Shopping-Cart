@@ -1,0 +1,621 @@
+/* ============================================================================
+   PASS 4 STOREFRONT ENHANCEMENTS
+   New layouts, animations, and polish for About, Contact, FAQ, and
+   product cards. All classes namespaced to avoid collisions.
+   ========================================================================== */
+
+/* ---------- About Page Redesign - Collection Grid ---------- */
+
+.about-section-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.about-collection-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+/* Responsive category cards */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+.mini-category {
+    box-sizing: border-box;
+    min-width: 0;
+    height: auto;
+    min-height: 100%;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+}
+
+.mini-icon {
+    display: block;
+    width: min(100%, 90px);
+    height: 90px;
+    object-fit: contain;
+    flex: 0 0 auto;
+    margin-bottom: 1rem;
+}
+
+.mini-category h3 {
+    width: 100%;
+    margin: 0 0 0.6rem;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-height: 1.25;
+}
+
+.mini-category p {
+    width: 100%;
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
+    line-height: 1.6;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .mini-category {
+        padding: 1.35rem;
+    }
+
+    .mini-icon {
+        width: min(100%, 80px);
+        height: 80px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .category-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .mini-category {
+        width: 100%;
+        min-height: 0;
+        padding: 1.25rem;
+    }
+
+    .mini-icon {
+        width: 75px;
+        height: 75px;
+        margin-bottom: 0.8rem;
+    }
+}
+
+/* Small phones */
+@media (max-width: 400px) {
+    .mini-category {
+        padding: 1rem;
+    }
+
+    .mini-icon {
+        width: 65px;
+        height: 65px;
+    }
+
+    .mini-category h3 {
+        font-size: 1.05rem;
+    }
+
+    .mini-category p {
+        font-size: 0.9rem;
+    }
+}
+
+.collection-featured {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.offer-card-featured {
+    width: 100%;
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 320px;
+}
+
+.offer-card-featured .offer-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+}
+
+.offer-card-featured h3 {
+    font-size: 1.22rem;
+}
+
+.collection-secondary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px;
+    align-content: start;
+}
+
+.collection-secondary .offer-card {
+    padding: 20px 18px;
+    min-height: 160px;
+}
+
+.collection-secondary .offer-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+}
+
+.collection-secondary h3 {
+    font-size: 0.95rem;
+}
+
+.collection-secondary p {
+    font-size: 0.85rem;
+}
+
+/* ---------- About Benefits Section Redesign ---------- */
+
+.about-benefits-section {
+    background: var(--bg-soft);
+}
+
+.about-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.benefit-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(95, 51, 168, 0.12);
+    border-color: #d9cdec;
+}
+
+.benefit-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.benefit-header .benefit-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    background: var(--brand-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.benefit-card h3 {
+    margin: 0 0 2px;
+    font-size: 1.05rem;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.benefit-card p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ---------- Product Card Enhancements ---------- */
+
+.product-card {
+    overflow: visible;
+}
+
+.product-image-wrap {
+    position: relative;
+    overflow: hidden;
+    background: #fbf9f6;
+}
+
+.product-image-wrap img {
+    transition: transform 0.28s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.product-card:hover .product-image-wrap img {
+    transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .product-image-wrap img {
+        transition: none;
+    }
+    .product-card:hover .product-image-wrap img {
+        transform: none;
+    }
+}
+
+.product-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.product-card:hover {
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- FAQ Enhancements ---------- */
+
+.faq-item {
+    transition: all 0.2s ease;
+}
+
+.faq-item:hover {
+    border-color: #d9cdec;
+    box-shadow: 0 4px 12px rgba(95, 51, 168, 0.08);
+}
+
+.faq-item summary {
+    font-size: 1rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.faq-item summary:hover {
+    background: var(--brand-light);
+    color: var(--brand-primary);
+    cursor: pointer;
+}
+
+.faq-item[open] summary {
+    background: var(--brand-light);
+    color: var(--brand-primary);
+}
+
+.faq-item summary::after {
+    transition: transform 0.28s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.faq-item[open] summary::after {
+    transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .faq-item summary::after {
+        transition: none;
+    }
+}
+
+.faq-item .faq-answer {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .faq-item .faq-answer {
+        animation: none;
+    }
+}
+
+/* ---------- Animation Utilities System ---------- */
+
+/* Fade in animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Hover lift animations */
+@keyframes hoverLift {
+    to {
+        transform: translateY(-3px);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+
+.fade-in-up:nth-child(1) { animation-delay: 0.05s; }
+.fade-in-up:nth-child(2) { animation-delay: 0.1s; }
+.fade-in-up:nth-child(3) { animation-delay: 0.15s; }
+.fade-in-up:nth-child(4) { animation-delay: 0.2s; }
+.fade-in-up:nth-child(5) { animation-delay: 0.25s; }
+.fade-in-up:nth-child(6) { animation-delay: 0.3s; }
+.fade-in-up:nth-child(7) { animation-delay: 0.35s; }
+.fade-in-up:nth-child(8) { animation-delay: 0.4s; }
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fade-in-up,
+    .fade-in {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ---------- Enhanced Interactive States ---------- */
+
+.category-pill {
+    transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.category-pill:active {
+    transform: scale(0.96);
+}
+
+.product-bottom-row .mini-cart-btn {
+    transition: all 0.2s ease;
+}
+
+.product-bottom-row .mini-cart-btn:active {
+    transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-pill:active,
+    .product-bottom-row .mini-cart-btn:active {
+        transform: none;
+    }
+}
+
+/* ---------- Contact Form Polish ---------- */
+
+.contact-form .form-input,
+.contact-form .form-textarea {
+    transition: all 0.15s ease;
+}
+
+.contact-form .form-input:hover,
+.contact-form .form-textarea:hover {
+    border-color: #d9cdec;
+}
+
+/* ---------- Responsive Adjustments ---------- */
+
+@media (max-width: 980px) {
+    .about-collection-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .collection-secondary {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .about-benefits-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .collection-secondary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .about-benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .benefit-card {
+        padding: 22px 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .collection-secondary {
+        grid-template-columns: 1fr;
+    }
+    
+    .offer-card-featured {
+        min-height: 240px;
+        padding: 28px 24px;
+    }
+    
+    .about-collection-grid,
+    .about-benefits-grid {
+        gap: 18px;
+    }
+    
+    .contact-layout {
+        gap: 20px;
+    }
+    
+    .contact-card {
+        padding: 22px 20px;
+    }
+    
+    .faq-item {
+        margin: 0;
+    }
+}
+
+/* ---------- Focus & Accessibility ---------- */
+
+.offer-card:focus-within,
+.benefit-card:focus-within,
+.faq-item:focus-within {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px var(--brand-light);
+}
+
+button:focus-visible,
+.category-pill:focus-visible,
+.mini-cart-btn:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+}
+
+/* ---------- Dark Mode Support (Optional) ---------- */
+
+@media (prefers-color-scheme: dark) {
+    .offer-card,
+    .benefit-card,
+    .contact-card,
+    .faq-item {
+        background: #1a1a1a;
+        border-color: #333;
+    }
+    
+    .offer-card h3,
+    .benefit-card h3 {
+        color: #fff;
+    }
+    
+    .offer-card p,
+    .benefit-card p,
+    .contact-info-item span {
+        color: #999;
+    }
+    
+    .about-pull {
+        background: #222;
+        border-left-color: var(--brand-primary);
+    }
+}
+
+/* About page category cards — preserve original look, fix text overflow */
+
+.about-categories .category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+
+.about-categories .mini-category {
+    box-sizing: border-box;
+    width: 100%;
+
+    /* Give the original cards more vertical room */
+    height: 255px;
+    min-height: 255px;
+
+    padding: 22px 20px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    text-align: center;
+
+    overflow: hidden;
+}
+
+.about-categories .mini-category .mini-icon {
+    width: 90px;
+    height: 90px;
+    flex: 0 0 90px;
+
+    object-fit: contain;
+
+    margin: 0 auto 12px;
+}
+
+.about-categories .mini-category h3 {
+    width: 100%;
+    margin: 0 0 8px;
+
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+.about-categories .mini-category p {
+    width: 100%;
+    margin: 0;
+
+    line-height: 1.55;
+
+    /* Keep the paragraph inside the card */
+    overflow-wrap: break-word;
+}
+
+
+/* Tablet */
+@media (max-width: 900px) {
+    .about-categories .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .about-categories .mini-category {
+        height: 250px;
+        min-height: 250px;
+    }
+
+    .about-categories .mini-category .mini-icon {
+        width: 80px;
+        height: 80px;
+        flex-basis: 80px;
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 600px) {
+    .about-categories .category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-categories .mini-category {
+        height: auto;
+        min-height: 230px;
+    }
+}

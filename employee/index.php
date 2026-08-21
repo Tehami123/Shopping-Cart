@@ -6,6 +6,7 @@ $pageTitle = 'Employee Dashboard - Arts';
 $basePath = '/Shopping%20Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
+require_once dirname(__DIR__) . '/includes/employee-shell.php';
 
 $activePage = 'index.php';
 $employeeNav = [
@@ -23,33 +24,37 @@ $employeeStats = $db->query(
         (SELECT COUNT(*) FROM orders WHERE status = "dispatched") AS deliveries_pending'
 )->fetch();
 ?>
-<main class="customer-page employee-page">
-    <div class="container">
-        <div class="customer-layout">
-            <aside class="customer-sidebar">
-                <div class="customer-profile-brief" style="background: #2b6cb0; color: white;">
-                    <div class="info">
-                        <strong style="color:white;">Employee Portal</strong>
-                        <span style="color:#e2e8f0;">Staff Dashboard</span>
+<main class="employee-app">
+    <div class="employee-layout">
+        <?php render_employee_sidebar($employeeNav, $activePage, $basePath); ?>
+        <section class="employee-main">
+            <?php render_employee_page_header('Employee Dashboard', 'Start with the work that needs attention, then move through dispatch and delivery in order.', 'Today at Arts'); ?>
+
+            <section class="employee-stat-grid" aria-label="Operations overview">
+                <article class="employee-stat-card employee-stat-card-alert"><span>Pending orders</span><strong><?= (int) $employeeStats['pending_orders'] ?></strong><small>Awaiting confirmation</small><a href="orders.php">View orders</a></article>
+                <article class="employee-stat-card employee-stat-card-primary"><span>Ready to dispatch</span><strong><?= (int) $employeeStats['ready_for_dispatch'] ?></strong><small>Payment cleared</small><a href="dispatch.php">Open dispatch</a></article>
+                <article class="employee-stat-card"><span>Out for delivery</span><strong><?= (int) $employeeStats['dispatched_orders'] ?></strong><small>Dispatched orders</small><a href="delivery.php">Track delivery</a></article>
+            </section>
+
+            <section class="employee-work-grid">
+                <article class="employee-panel employee-attention-panel">
+                    <div class="employee-panel-heading"><div><span class="employee-eyebrow">Priority queue</span><h2>What needs attention</h2></div><span class="employee-live-label">Live counts</span></div>
+                    <div class="employee-attention-list">
+                        <a href="orders.php" class="employee-attention-item <?= (int) $employeeStats['pending_orders'] > 0 ? 'is-alert' : 'is-clear' ?>"><span class="employee-attention-icon">!</span><span><strong><?= (int) $employeeStats['pending_orders'] ?> pending orders</strong><small>Review the order queue and current payment details.</small></span><span class="employee-arrow">-&gt;</span></a>
+                        <a href="dispatch.php" class="employee-attention-item <?= (int) $employeeStats['ready_for_dispatch'] > 0 ? 'is-ready' : 'is-clear' ?>"><span class="employee-attention-icon">D</span><span><strong><?= (int) $employeeStats['ready_for_dispatch'] ?> ready for dispatch</strong><small>Payment-cleared orders can move to fulfillment.</small></span><span class="employee-arrow">-&gt;</span></a>
+                        <a href="delivery.php" class="employee-attention-item <?= (int) $employeeStats['deliveries_pending'] > 0 ? 'is-ready' : 'is-clear' ?>"><span class="employee-attention-icon">&gt;</span><span><strong><?= (int) $employeeStats['deliveries_pending'] ?> delivery updates</strong><small>Keep dispatched orders moving to delivered.</small></span><span class="employee-arrow">-&gt;</span></a>
                     </div>
-                </div>
-                <nav class="customer-nav">
-                    <?php foreach ($employeeNav as $url => $label): ?>
-                        <a href="<?= $url ?>" <?= $activePage === $url ? 'class="active"' : '' ?>><?= $label ?></a>
-                    <?php endforeach; ?>
-                    <a href="<?= $basePath ?>/auth/login.php" class="logout-link">Logout</a>
-                </nav>
-            </aside>
-            <div class="customer-content">
-                <h1 class="customer-page-title">Employee Dashboard</h1>
-                <div class="dashboard-stats-grid" style="grid-template-columns: repeat(2, 1fr);">
-                    <div class="stat-card"><div class="stat-value" style="color:#dd6b20;"><?= (int) $employeeStats['pending_orders'] ?></div><div class="stat-label">Pending Orders</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#2b6cb0;"><?= (int) $employeeStats['ready_for_dispatch'] ?></div><div class="stat-label">Ready for Dispatch</div></div>
-                    <div class="stat-card"><div class="stat-value"><?= (int) $employeeStats['dispatched_orders'] ?></div><div class="stat-label">Dispatched Orders</div></div>
-                    <div class="stat-card"><div class="stat-value" style="color:#22543d;"><?= (int) $employeeStats['deliveries_pending'] ?></div><div class="stat-label">Deliveries Pending</div></div>
-                </div>
-            </div>
-        </div>
+                </article>
+                <article class="employee-panel employee-quick-panel">
+                    <div class="employee-panel-heading"><div><span class="employee-eyebrow">Shortcuts</span><h2>Quick actions</h2></div></div>
+                    <div class="employee-shortcut-list">
+                        <a href="orders.php"><span class="employee-shortcut-index">01</span><strong>View all orders</strong><span class="employee-arrow">-&gt;</span></a>
+                        <a href="dispatch.php"><span class="employee-shortcut-index">02</span><strong>Dispatch queue</strong><span class="employee-arrow">-&gt;</span></a>
+                        <a href="delivery.php"><span class="employee-shortcut-index">03</span><strong>Delivery updates</strong><span class="employee-arrow">-&gt;</span></a>
+                    </div>
+                </article>
+            </section>
+        </section>
     </div>
 </main>
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

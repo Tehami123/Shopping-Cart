@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Easy Returns</title>
+  <desc id="desc">A parcel surrounded by a simple return arrow</desc>
+  <path d="M18 23h28v27H18z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m18 23 14-8 14 8-14 8z" fill="#c9a7e8" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M32 31v19" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M52 17c6 3 8 10 5 16-3 6-10 9-17 6" fill="none" stroke="#a64d73" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="m41 39-2-9 9 3" fill="none" stroke="#a64d73" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M10 52h11" stroke="#f1b86b" stroke-width="3" stroke-linecap="round"/>
+</svg>

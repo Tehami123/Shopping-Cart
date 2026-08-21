@@ -104,10 +104,10 @@ $featuredProducts = [
 ];
 
 $benefits = [
-    ['icon' => '🚚', 'title' => 'Fast Delivery', 'text' => 'Free shipping over $50'],
-    ['icon' => '↺', 'title' => 'Easy Returns', 'text' => '30-day return policy'],
-    ['icon' => '✓', 'title' => 'Premium Quality', 'text' => 'Curated best products'],
-    ['icon' => '☎', 'title' => '24/7 Support', 'text' => 'We are here to help'],
+    ['icon' => 'fast-delivery.svg', 'title' => 'Fast Delivery', 'text' => 'Free shipping over $50'],
+    ['icon' => 'easy-returns.svg', 'title' => 'Easy Returns', 'text' => '30-day return policy'],
+    ['icon' => 'premium-quality.svg', 'title' => 'Premium Quality', 'text' => 'Curated best products'],
+    ['icon' => 'support.svg', 'title' => '24/7 Support', 'text' => 'We are here to help'],
 ];
 ?>
 
@@ -307,6 +307,10 @@ $benefits = [
     padding: 40px;
     box-shadow: 0 25px 50px rgba(0,0,0,0.06);
     animation: float 6s ease-in-out infinite;
+}
+.benefit-card-premium .icon {
+    display: block;
+    margin: 0 auto 20px;
 }
 
 .glass-card img {
@@ -664,7 +668,7 @@ $benefits = [
             <div class="benefits-premium">
                 <?php foreach ($benefits as $benefit): ?>
                     <div class="benefit-card-premium">
-                        <span class="icon"><?= htmlspecialchars($benefit['icon'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <img class="icon" src="<?= $basePath ?>/assets/images/benefits/<?= htmlspecialchars($benefit['icon'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($benefit['title'], ENT_QUOTES, 'UTF-8') ?>">
                         <h3><?= htmlspecialchars($benefit['title'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <p><?= htmlspecialchars($benefit['text'], ENT_QUOTES, 'UTF-8') ?></p>
                     </div>

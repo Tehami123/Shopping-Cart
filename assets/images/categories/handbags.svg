@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Handbag</title>
+  <desc id="desc">A stylish structured handbag in plum and lavender</desc>
+  <path d="M38 45h84l8 61H30z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <path d="M58 47V35c0-15 10-24 22-24s22 9 22 24v12" fill="none" stroke="#5f33a8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M42 57h76" stroke="#f1b86b" stroke-width="4"/>
+  <path d="M57 76h46v19H57z" fill="#c9a7e8" stroke="#4b2685" stroke-width="2.5"/>
+  <circle cx="80" cy="84" r="4" fill="#f1b86b" stroke="#4b2685" stroke-width="2"/>
+  <path d="M31 106h98" stroke="#4b2685" stroke-width="3" stroke-linecap="round"/>
+  <path d="M44 47v8M116 47v8" stroke="#f4ecfd" stroke-width="3" stroke-linecap="round"/>
+</svg>

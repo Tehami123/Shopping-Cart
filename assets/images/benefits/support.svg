@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">24/7 Support</title>
+  <desc id="desc">A friendly support headset with a speech bubble</desc>
+  <path d="M14 34v-5c0-11 8-19 18-19s18 8 18 19v5" fill="none" stroke="#5f33a8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M12 32h8v15h-8c-3 0-5-2-5-5v-5c0-3 2-5 5-5ZM52 32h-8v15h8c3 0 5-2 5-5v-5c0-3-2-5-5-5Z" fill="#c9a7e8" stroke="#4b2685" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M44 49c-3 5-8 7-14 7" fill="none" stroke="#a64d73" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="22" r="5" fill="#f1b86b"/>
+</svg>

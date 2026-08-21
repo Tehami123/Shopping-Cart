@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Beauty products</title>
+  <desc id="desc">A small collection of lipstick, perfume, and compact beauty essentials</desc>
+  <ellipse cx="82" cy="105" rx="53" ry="6" fill="#eadff1"/>
+  <path d="M38 51h25v50H38z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <path d="M38 51h25l-4-12H42z" fill="#f1b86b" stroke="#4b2685" stroke-width="3"/>
+  <path d="M42 39h17V24H42z" fill="#c95d80" stroke="#4b2685" stroke-width="3"/>
+  <path d="M42 24h17l-3-8H45z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <path d="M76 54h35v46H76z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M80 54h27V37H80z" fill="#c9a7e8" stroke="#5f33a8" stroke-width="3"/>
+  <path d="M87 46h13" stroke="#fffaf3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="93.5" cy="78" r="10" fill="#fffaf3" stroke="#a64d73" stroke-width="3"/>
+  <path d="M88 78c3-4 8-4 11 0-3 5-8 5-11 0Z" fill="#f1b86b"/>
+  <path d="M125 61h20v39h-20z" fill="#c9a7e8" stroke="#4b2685" stroke-width="3"/>
+  <path d="M129 61h12V50h-12z" fill="#f1b86b" stroke="#4b2685" stroke-width="3"/>
+  <path d="M128 75h14" stroke="#fffaf3" stroke-width="3" stroke-linecap="round"/>
+</svg>

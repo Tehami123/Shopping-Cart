@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Address</title>
+  <desc id="desc">A location pin over a small map fold</desc>
+  <path d="M12 17 28 10l17 7 7-3v33l-16 7-17-7-7 3z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M28 10v37M45 17v37" fill="none" stroke="#c9a7e8" stroke-width="3"/>
+  <path d="M36 18c-7 0-12 5-12 12 0 9 12 20 12 20s12-11 12-20c0-7-5-12-12-12Z" fill="#a64d73" stroke="#4b2685" stroke-width="3"/>
+  <circle cx="36" cy="30" r="4" fill="#fffaf3"/>
+</svg>

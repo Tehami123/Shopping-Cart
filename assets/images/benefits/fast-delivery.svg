@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Fast Delivery</title>
+  <desc id="desc">A delivery parcel with motion lines</desc>
+  <path d="M8 22h31v25H8z" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M39 30h10l8 9v8H39z" fill="#c9a7e8" stroke="#5f33a8" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m39 30 7-8h3l8 8" fill="none" stroke="#4b2685" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="19" cy="50" r="5" fill="#a64d73" stroke="#4b2685" stroke-width="2"/><circle cx="48" cy="50" r="5" fill="#a64d73" stroke="#4b2685" stroke-width="2"/>
+  <path d="M4 14h13M1 20h8" stroke="#f1b86b" stroke-width="3" stroke-linecap="round"/>
+  <path d="M22 29h10M22 36h7" stroke="#a64d73" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

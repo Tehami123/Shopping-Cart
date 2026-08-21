@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Phone</title>
+  <desc id="desc">A boutique-style telephone handset</desc>
+  <path d="M20 12 29 9l7 14-7 5c3 7 9 13 16 16l5-7 14 7-3 9c-2 5-8 7-13 5C31 51 17 37 10 20c-2-5 0-10 5-12Z" transform="translate(-5 -1) scale(.9)" fill="#f4ecfd" stroke="#5f33a8" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M43 16c5 2 8 6 9 11M43 9c9 3 14 9 16 18" fill="none" stroke="#f1b86b" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
