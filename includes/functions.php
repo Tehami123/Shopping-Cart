@@ -611,6 +611,35 @@ function get_all_published_faqs(): array
     return $stmt->fetchAll();
 }
 
+function format_return_status_label(string $status): string
+{
+    $map = [
+        'requested' => 'Pending',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+        'completed' => 'Completed',
+    ];
+
+    $normalized = strtolower(trim($status));
+    return $map[$normalized] ?? ucfirst($normalized);
+}
+
+function is_within_return_window(?string $deliveryDate): bool
+{
+    if ($deliveryDate === null || trim($deliveryDate) === '') {
+        return false;
+    }
+
+    $delivered = strtotime(date('Y-m-d', strtotime($deliveryDate)));
+    $today = strtotime(date('Y-m-d'));
+    if ($delivered === false || $today === false) {
+        return false;
+    }
+
+    $daysSinceDelivery = (int) floor(($today - $delivered) / 86400);
+    return $daysSinceDelivery >= 0 && $daysSinceDelivery <= 7;
+}
+
 function get_customer_eligible_return_items(int $customerId): array
 {
     $db = get_db_connection();
@@ -624,6 +653,7 @@ function get_customer_eligible_return_items(int $customerId): array
         WHERE o.customer_id = :order_customer_id
           AND o.status = :status
           AND o.delivery_date IS NOT NULL
+          AND DATEDIFF(CURDATE(), o.delivery_date) BETWEEN 0 AND 7
           AND r.return_id IS NULL
         ORDER BY o.delivery_date DESC'
     );
@@ -633,6 +663,99 @@ function get_customer_eligible_return_items(int $customerId): array
         ':status' => 'delivered',
     ]);
     return $stmt->fetchAll();
+}
+
+function get_return_request_for_order_item(int $orderItemId, int $customerId): ?array
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT r.* FROM returns r
+        WHERE r.order_item_id = :order_item_id AND r.customer_id = :customer_id
+        LIMIT 1'
+    );
+    $stmt->execute([
+        ':order_item_id' => $orderItemId,
+        ':customer_id' => $customerId,
+    ]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+function can_request_return_for_item(int $orderItemId, int $customerId): bool
+{
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT o.status, o.delivery_date
+        FROM order_items oi
+        INNER JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.order_item_id = :order_item_id AND o.customer_id = :customer_id
+        LIMIT 1'
+    );
+    $stmt->execute([
+        ':order_item_id' => $orderItemId,
+        ':customer_id' => $customerId,
+    ]);
+    $row = $stmt->fetch();
+    if (!$row || $row['status'] !== 'delivered' || !is_within_return_window($row['delivery_date'] ?? null)) {
+        return false;
+    }
+
+    return get_return_request_for_order_item($orderItemId, $customerId) === null;
+}
+
+function submit_customer_return_request(
+    int $orderItemId,
+    int $customerId,
+    string $returnType,
+    string $reason,
+    string $description = ''
+): bool {
+    $returnType = in_array($returnType, ['return', 'replacement'], true) ? $returnType : '';
+    $reason = trim($reason);
+    $description = trim($description);
+
+    if ($orderItemId <= 0 || $customerId <= 0 || $returnType === '' || $reason === '') {
+        return false;
+    }
+
+    if (!can_request_return_for_item($orderItemId, $customerId)) {
+        return false;
+    }
+
+    $db = get_db_connection();
+    $stmt = $db->prepare(
+        'SELECT oi.order_id
+        FROM order_items oi
+        INNER JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.order_item_id = :order_item_id AND o.customer_id = :customer_id
+        LIMIT 1'
+    );
+    $stmt->execute([
+        ':order_item_id' => $orderItemId,
+        ':customer_id' => $customerId,
+    ]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return false;
+    }
+
+    try {
+        $insert = $db->prepare(
+            'INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, status, request_date)
+            VALUES (:order_id, :order_item_id, :customer_id, :return_type, :reason, :description, :status, CURRENT_TIMESTAMP)'
+        );
+        return $insert->execute([
+            ':order_id' => (int) $row['order_id'],
+            ':order_item_id' => $orderItemId,
+            ':customer_id' => $customerId,
+            ':return_type' => $returnType,
+            ':reason' => substr($reason, 0, 255),
+            ':description' => $description !== '' ? $description : null,
+            ':status' => 'requested',
+        ]);
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
 function get_customer_return_requests(int $customerId): array
@@ -778,8 +901,9 @@ function can_cancel_order(int $orderId, int $customerId): bool
         return false;
     }
     
-    // Can only cancel if status is pending or confirmed (not dispatched, delivered, or already cancelled)
-    return in_array($order['status'], ['pending', 'confirmed'], true);
+    // Customers may cancel pending, confirmed, or processing orders they own.
+    // Dispatched, delivered, and cancelled orders cannot be cancelled.
+    return in_array($order['status'], ['pending', 'confirmed', 'processing'], true);
 }
 
 function cancel_order(int $orderId, int $customerId): bool
@@ -794,15 +918,19 @@ function cancel_order(int $orderId, int $customerId): bool
     try {
         $db->beginTransaction();
         
-        // Update order status to cancelled
+        // Update order status to cancelled (ownership already verified)
         $stmt = $db->prepare(
-            'UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE order_id = :order_id'
+            'UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE order_id = :order_id AND customer_id = :customer_id'
         );
-        $stmt->execute([':status' => 'cancelled', ':order_id' => $orderId]);
+        $stmt->execute([
+            ':status' => 'cancelled',
+            ':order_id' => $orderId,
+            ':customer_id' => $customerId,
+        ]);
         
         // Restore stock for all items in the order
         $stmt = $db->prepare(
-            'SELECT oi.product_id, oi.quantity FROM order_items WHERE order_id = :order_id'
+            'SELECT product_id, quantity FROM order_items WHERE order_id = :order_id'
         );
         $stmt->execute([':order_id' => $orderId]);
         $items = $stmt->fetchAll();

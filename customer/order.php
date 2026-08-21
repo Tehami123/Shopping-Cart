@@ -51,6 +51,47 @@ $paymentBadgeClass = $badgeClassForPayment[$order['payment_status']] ?? 'ca-badg
 $statusBadgeClass = $badgeClassForStatus[$order['status']] ?? 'ca-badge--neutral';
 $canCancel = in_array($order['status'], ['pending', 'confirmed'], true);
 
+$returnMessage = '';
+$returnAlertType = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
+    $orderItemId = (int) ($_POST['order_item_id'] ?? 0);
+    $returnTypeValue = in_array($_POST['return_type'] ?? '', ['return', 'replacement'], true) ? $_POST['return_type'] : '';
+    $reason = trim((string) ($_POST['reason'] ?? ''));
+    $description = trim((string) ($_POST['description'] ?? ''));
+
+    $itemBelongsToOrder = false;
+    foreach ($items as $lineItem) {
+        if ((int) $lineItem['order_item_id'] === $orderItemId) {
+            $itemBelongsToOrder = true;
+            break;
+        }
+    }
+
+    if ($orderItemId > 0 && $itemBelongsToOrder && $returnTypeValue !== '' && $reason !== '') {
+        if (get_return_request_for_order_item($orderItemId, $customerId)) {
+            $returnMessage = 'A return has already been requested for this item.';
+            $returnAlertType = 'error';
+        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description)) {
+            $returnMessage = 'Return request submitted successfully.';
+            $returnAlertType = 'success';
+        } else {
+            $returnMessage = 'This item is not eligible for return. Returns are only available for delivered items within 7 days.';
+            $returnAlertType = 'error';
+        }
+    } else {
+        $returnMessage = 'Please provide all required information.';
+        $returnAlertType = 'error';
+    }
+}
+
+$returnsByItem = [];
+foreach (get_customer_return_requests($customerId) as $existingReturn) {
+    if ((int) $existingReturn['order_id'] === $orderId) {
+        $returnsByItem[(int) $existingReturn['order_item_id']] = $existingReturn;
+    }
+}
+$orderReturnEligible = ($order['status'] === 'delivered' && is_within_return_window($order['delivery_date'] ?? null));
+
 // Handle order cancellation
 $cancelMessage = '';
 $cancelType = '';
@@ -374,6 +415,11 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                         <?= htmlspecialchars($cancelMessage, ENT_QUOTES, 'UTF-8') ?>
                     </div>
                 <?php endif; ?>
+                <?php if ($returnMessage): ?>
+                    <div class="ca-alert <?= $returnAlertType === 'success' ? 'ca-alert-success' : 'ca-alert-error' ?>">
+                        <?= htmlspecialchars($returnMessage, ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                <?php endif; ?>
 
                 <div class="ca-order-summary-card">
                     <div class="ca-order-summary-topbar">
@@ -445,10 +491,15 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                 <th>Price</th>
                                 <th style="text-align: center;">Qty</th>
                                 <th style="text-align: right;">Subtotal</th>
+                                <th style="text-align: right;">Return</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($items as $item): ?>
+                                <?php
+                                $itemId = (int) $item['order_item_id'];
+                                $itemReturn = $returnsByItem[$itemId] ?? null;
+                                ?>
                                 <tr>
                                     <td>
                                         <strong><?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?></strong>
@@ -457,12 +508,23 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                     <td>$<?= number_format((float)$item['unit_price'], 2) ?></td>
                                     <td style="text-align: center;"><?= (int)$item['quantity'] ?></td>
                                     <td style="text-align: right;">$<?= number_format((float)$item['subtotal'], 2) ?></td>
+                                    <td style="text-align: right;">
+                                        <?php if ($itemReturn): ?>
+                                            <span class="ca-badge <?= $itemReturn['status'] === 'rejected' ? 'ca-badge--danger' : ($itemReturn['status'] === 'completed' ? 'ca-badge--success' : ($itemReturn['status'] === 'approved' ? 'ca-badge--info' : 'ca-badge--warning')) ?>">
+                                                <?= htmlspecialchars(format_return_status_label((string) $itemReturn['status']), ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
+                                        <?php elseif ($orderReturnEligible): ?>
+                                            <button type="button" class="return-btn" onclick="openReturnModal(<?= htmlspecialchars(json_encode($item['product_name']), ENT_QUOTES, 'UTF-8') ?>, <?= $itemId ?>)">Return / Replace</button>
+                                        <?php else: ?>
+                                            <span class="ca-product-id">—</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3" style="text-align: right;">Order Total</td>
+                                <td colspan="4" style="text-align: right;">Order Total</td>
                                 <td style="text-align: right;" class="ca-order-total-value">$<?= number_format((float)$order['total_amount'], 2) ?></td>
                             </tr>
                         </tfoot>
@@ -485,5 +547,54 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
         </div>
     </div>
 </main>
+
+<div id="returnModal" class="mock-modal" style="display: none;">
+    <div class="mock-modal-content">
+        <h3>Request Return or Replacement</h3>
+        <p>Product: <strong id="modalProductName"></strong></p>
+
+        <form method="POST">
+            <input type="hidden" name="submit_return" value="1">
+            <input type="hidden" id="orderItemId" name="order_item_id" value="0">
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="returnType">Request Type</label>
+                <select id="returnType" name="return_type" class="form-select" required>
+                    <option value="return">Return</option>
+                    <option value="replacement">Replacement</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="returnReason">Reason</label>
+                <input type="text" id="returnReason" name="reason" class="form-input" placeholder="e.g., Defective, wrong item, etc." required>
+            </div>
+
+            <div class="form-group">
+                <label for="returnComments">Additional Comments</label>
+                <textarea id="returnComments" name="description" class="form-textarea" rows="3"></textarea>
+            </div>
+
+            <div class="mock-modal-actions">
+                <button type="submit" class="modal-submit-btn">Submit Request</button>
+                <button type="button" class="modal-cancel-btn" onclick="closeReturnModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openReturnModal(productName, orderItemId) {
+    document.getElementById('modalProductName').textContent = productName;
+    document.getElementById('orderItemId').value = orderItemId;
+    document.getElementById('returnModal').style.display = 'flex';
+}
+
+function closeReturnModal() {
+    document.getElementById('returnModal').style.display = 'none';
+    document.getElementById('returnType').value = 'return';
+    document.getElementById('returnReason').value = '';
+    document.getElementById('returnComments').value = '';
+}
+</script>
 
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

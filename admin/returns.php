@@ -56,7 +56,7 @@ $returns = get_all_returns_for_admin();
                                     <td><?= ucfirst(htmlspecialchars($return['return_type'], ENT_QUOTES, 'UTF-8')) ?></td>
                                     <td><?= htmlspecialchars($return['reason'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= date('d M Y', strtotime($return['request_date'])) ?></td>
-                                    <td><span class="status-badge <?= get_status_badge_class($return['status'], 'return') ?>"><?= ucfirst(htmlspecialchars($return['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
+                                    <td><span class="status-badge <?= get_status_badge_class($return['status'], 'return') ?>"><?= htmlspecialchars(format_return_status_label((string) $return['status']), ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td class="admin-actions-cell">
                                         <form method="POST" style="display:inline;">
                                             <input type="hidden" name="return_id" value="<?= (int) $return['return_id'] ?>">

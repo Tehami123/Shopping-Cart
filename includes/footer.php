@@ -42,7 +42,7 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2024 Arts Stationery & Lifestyle. All rights reserved.</p>
+            <p>© 2026 Arts Stationery & Lifestyle. All rights reserved.</p>
             <div class="socials" aria-label="Social media links">
                 <span>◌</span>
                 <span>◍</span>

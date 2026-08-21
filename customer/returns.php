@@ -6,7 +6,6 @@ require_customer();
 $pageTitle = 'Returns & Replacements - Arts';
 $basePath = '/Shopping%20Cart';
 
-$db = get_db_connection();
 $userId = current_user_id();
 $customerId = get_customer_id_for_user((int) $userId);
 $profile = null;
@@ -21,35 +20,17 @@ $returnType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
     $orderItemId = (int) ($_POST['order_item_id'] ?? 0);
-    $returnTypeValue = in_array($_POST['return_type'] ?? '', ['return', 'replacement'], true) ? $_POST['return_type'] : 'return';
+    $returnTypeValue = in_array($_POST['return_type'] ?? '', ['return', 'replacement'], true) ? $_POST['return_type'] : '';
     $reason = trim((string) ($_POST['reason'] ?? ''));
     $description = trim((string) ($_POST['description'] ?? ''));
 
-    if ($customerId !== null && $orderItemId > 0 && $reason !== '') {
-        $item = $db->prepare('SELECT oi.order_item_id, o.order_id, o.delivery_date, p.name FROM order_items oi INNER JOIN orders o ON o.order_id = oi.order_id INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_item_id = :order_item_id AND o.customer_id = :item_customer_id AND o.status = :status LIMIT 1');
-        $item->execute([':order_item_id' => $orderItemId, ':item_customer_id' => $customerId, ':status' => 'delivered']);
-        $row = $item->fetch();
-
-        if ($row && $row['delivery_date'] && (time() - strtotime($row['delivery_date'])) <= (7 * 24 * 60 * 60)) {
-            $check = $db->prepare('SELECT return_id FROM returns WHERE order_item_id = :check_order_item_id AND customer_id = :check_customer_id LIMIT 1');
-            $check->execute([':check_order_item_id' => $orderItemId, ':check_customer_id' => $customerId]);
-            if (!$check->fetch()) {
-                $insert = $db->prepare('INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, status, request_date) VALUES (:order_id, :insert_order_item_id, :insert_customer_id, :return_type_val, :reason, :description, :status, CURRENT_TIMESTAMP)');
-                $insert->execute([
-                    ':order_id' => (int) $row['order_id'],
-                    ':insert_order_item_id' => $orderItemId,
-                    ':insert_customer_id' => $customerId,
-                    ':return_type_val' => $returnTypeValue,
-                    ':reason' => $reason,
-                    ':description' => $description,
-                    ':status' => 'requested',
-                ]);
-                $returnMessage = 'Return request submitted successfully.';
-                $returnType = 'success';
-            } else {
-                $returnMessage = 'A return has already been requested for this item.';
-                $returnType = 'error';
-            }
+    if ($orderItemId > 0 && $returnTypeValue !== '' && $reason !== '') {
+        if (get_return_request_for_order_item($orderItemId, $customerId)) {
+            $returnMessage = 'A return has already been requested for this item.';
+            $returnType = 'error';
+        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description)) {
+            $returnMessage = 'Return request submitted successfully.';
+            $returnType = 'success';
         } else {
             $returnMessage = 'This item is not eligible for return. Returns are only available for delivered items within 7 days.';
             $returnType = 'error';
@@ -60,28 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
     }
 }
 
-$eligibleItems = $db->prepare('
-    SELECT oi.order_item_id, o.order_id, o.order_number, o.delivery_date,
-           p.name AS product_name, p.image_url
-    FROM orders o
-    INNER JOIN order_items oi ON oi.order_id = o.order_id
-    INNER JOIN products p ON p.product_id = oi.product_id
-    LEFT JOIN returns r
-        ON r.order_item_id = oi.order_item_id
-        AND r.customer_id = :return_customer_id
-    WHERE o.customer_id = :order_customer_id
-      AND o.status = :status
-      AND o.delivery_date IS NOT NULL
-      AND r.return_id IS NULL
-    ORDER BY o.delivery_date DESC
-');
-
-$eligibleItems->execute([
-    ':return_customer_id' => $customerId,
-    ':order_customer_id' => $customerId,
-    ':status' => 'delivered'
-]);
-$mockItems = $eligibleItems->fetchAll();
+$mockItems = get_customer_eligible_return_items($customerId);
 
 $existingRequests = get_customer_return_requests($customerId);
 
@@ -179,9 +139,10 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                 <div class="ca-return-details">
                                     <div class="ca-return-name"><?= htmlspecialchars($request['product_name'], ENT_QUOTES, 'UTF-8') ?></div>
                                     <div class="ca-return-meta">Order #<?= htmlspecialchars($request['order_number'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <div class="ca-return-meta"><?= htmlspecialchars(ucfirst((string) $request['return_type']), ENT_QUOTES, 'UTF-8') ?> · <?= date('d M Y', strtotime($request['request_date'])) ?></div>
                                 </div>
                                 <div class="ca-return-actions">
-                                    <span class="ca-badge <?= $reqBadgeClass ?>"><?= ucfirst(htmlspecialchars($request['status'], ENT_QUOTES, 'UTF-8')) ?></span>
+                                    <span class="ca-badge <?= $reqBadgeClass ?>"><?= htmlspecialchars(format_return_status_label((string) $request['status']), ENT_QUOTES, 'UTF-8') ?></span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -205,7 +166,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <div class="form-group" style="margin-top: 20px;">
                 <label for="returnType">Request Type</label>
                 <select id="returnType" name="return_type" class="form-select" required>
-                    <option value="return">Return for Refund</option>
+                    <option value="return">Return</option>
                     <option value="replacement">Replacement</option>
                 </select>
             </div>
