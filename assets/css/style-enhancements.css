@@ -508,7 +508,6 @@ button:focus-visible,
 @media (prefers-color-scheme: dark) {
     .offer-card,
     .benefit-card,
-    .contact-card,
     .faq-item {
         background: #1a1a1a;
         border-color: #333;
@@ -520,8 +519,7 @@ button:focus-visible,
     }
     
     .offer-card p,
-    .benefit-card p,
-    .contact-info-item span {
+    .benefit-card p {
         color: #999;
     }
     

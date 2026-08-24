@@ -116,10 +116,13 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                 <button type="submit" class="auth-submit-btn">Log In</button>
             </form>
             
-            <div class="auth-links">
-                <p>Don't have an account? <a href="<?= $basePath ?>/auth/register.php">Create an account</a></p>
-                <p><a href="<?= $basePath ?>/products.php" class="text-link">← Continue Shopping</a></p>
-            </div>
+           <div class="auth-links">
+    <?php if ($requiredRole === null): ?>
+        <p>Don't have an account? <a href="<?= $basePath ?>/auth/register.php">Create an account</a></p>
+    <?php endif; ?>
+
+    <p><a href="<?= $basePath ?>/products.php" class="text-link">← Continue Shopping</a></p>
+</div>
         </div>
     </div>
 </main>

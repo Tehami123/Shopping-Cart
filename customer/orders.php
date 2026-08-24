@@ -116,6 +116,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                             $paymentBadgeClass = $badgeClassForPayment[$order['payment_status']] ?? 'ca-badge--neutral';
                             $statusBadgeClass = $badgeClassForStatus[$order['status']] ?? 'ca-badge--neutral';
                             ?>
+                            
                             <div class="ca-order-card">
                                 <div class="ca-order-head">
                                     <div class="ca-order-field">
