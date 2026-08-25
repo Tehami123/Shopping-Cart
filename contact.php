@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Contact Us - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 require_once __DIR__ . '/includes/auth.php';

@@ -4,7 +4,7 @@ require_once dirname(__DIR__) . '/includes/functions.php';
 require_customer();
 
 $pageTitle = 'Order Details - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 $userId = current_user_id();
 $customerId = get_customer_id_for_user((int) $userId);
 

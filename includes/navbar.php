@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 $navRole = current_user_role();
 $navUser = current_user();
 $navCartCount = 0;

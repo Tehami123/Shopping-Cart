@@ -3,7 +3,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 
 $pageTitle = 'Create Account - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 
 if (is_logged_in()) {
     redirect_to($basePath . '/customer/index.php');

@@ -1,6 +1,6 @@
 <?php
 $pageTitle = $pageTitle ?? 'Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 ?>
 <!DOCTYPE html>
 <html lang="en">

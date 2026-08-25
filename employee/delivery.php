@@ -3,7 +3,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_employee();
 
 $pageTitle = 'Deliveries - Arts Employee';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 require_once dirname(__DIR__) . '/includes/employee-shell.php';

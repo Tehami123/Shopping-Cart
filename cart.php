@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $pageTitle = 'Your Cart - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];

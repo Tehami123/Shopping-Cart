@@ -3,7 +3,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 
 $pageTitle = 'Log In - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 $requestedRole = strtolower(trim((string) ($_GET['role'] ?? $_POST['role'] ?? '')));
 $requiredRole = in_array($requestedRole, ['admin', 'employee'], true) ? $requestedRole : null;
 $loginTitle = $requiredRole === 'admin' ? 'Admin Login' : ($requiredRole === 'employee' ? 'Employee Login' : 'Log In');

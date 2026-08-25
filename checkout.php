@@ -5,7 +5,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $pageTitle = 'Checkout - Arts';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 
 $customerId = get_customer_id_for_user((int) current_user_id());
 if ($customerId === null) {

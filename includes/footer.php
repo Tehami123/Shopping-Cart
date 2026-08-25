@@ -1,4 +1,4 @@
-<?php $basePath = '/Shopping%20Cart'; ?>
+<?php $basePath = '/Shopping-Cart'; ?>
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>

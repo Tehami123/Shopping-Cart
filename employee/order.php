@@ -50,7 +50,7 @@ $itemsStmt->execute([$orderId]);
 $items = $itemsStmt->fetchAll();
 
 $pageTitle = 'Order ' . htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') . ' - Arts Employee';
-$basePath = '/Shopping%20Cart';
+$basePath = '/Shopping-Cart';
 require_once dirname(__DIR__) . '/includes/header.php';
 require_once dirname(__DIR__) . '/includes/navbar.php';
 require_once dirname(__DIR__) . '/includes/employee-shell.php';
