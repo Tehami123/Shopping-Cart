@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price = (float) ($_POST['price'] ?? 0);
         $stock = (int) ($_POST['stock'] ?? 0);
         $status = in_array($_POST['status'] ?? '', ['active', 'inactive'], true) ? $_POST['status'] : 'active';
-        $imageUrl = trim((string) ($_POST['image_url'] ?? '')) ?: '/Shopping%20Cart/assets/images/stationery.svg';
+        $imageUrl = trim((string) ($_POST['image_url'] ?? '')) ?: '/Shopping-Cart/assets/images/stationery.svg';
         $upload = handle_product_image_upload('image_file');
 
         if ($upload['error'] !== null) {
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$currentProduct) {
                 $errorMessage = 'Product not found.';
             } else {
-                $imageUrl = $upload['path'] ?? ($currentProduct['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg');
+                $imageUrl = $upload['path'] ?? ($currentProduct['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg');
                 $update = $db->prepare('UPDATE products SET category_id = :category_id, name = :name, description = :description, price = :price, stock = :stock, image_url = :image_url, status = :status WHERE product_id = :product_id');
                 $update->execute([
                 ':category_id' => $categoryId,
@@ -185,11 +185,11 @@ $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNE
                                     'priceNumeric' => (float) $product['price'],
                                     'stock' => (int) $product['stock'],
                                     'status' => $product['status'],
-                                    'image' => $product['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg',
+                                    'image' => $product['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg',
                                 ];
                                 ?>
                                 <tr class="admin-product-row" tabindex="0" role="button" aria-label="View details for <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" data-product="<?= htmlspecialchars(json_encode($productDetails, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>">
-                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
+                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
                                     <td><?= htmlspecialchars($product['category_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= format_currency((float) $product['price']) ?></td>
                                     <td><?= (int) $product['stock'] ?></td>
@@ -239,7 +239,7 @@ $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNE
                 <div class="form-group"><label>Price</label><input type="number" name="price" step="0.01" min="0" class="form-input" required></div>
                 <div class="form-group"><label>Stock</label><input type="number" name="stock" min="0" class="form-input" required></div>
             </div>
-            <div class="form-group"><label>Image URL</label><input type="text" name="image_url" class="form-input" placeholder="/Shopping%20Cart/assets/images/stationery.svg"></div>
+            <div class="form-group"><label>Image URL</label><input type="text" name="image_url" class="form-input" placeholder="/Shopping-Cart/assets/images/stationery.svg"></div>
             <div class="form-group"><label for="addProductImage">Upload Image</label><input type="file" id="addProductImage" name="image_file" class="form-input" accept=".jpg,.jpeg,.png,.svg,.webp,image/jpeg,image/png,image/svg+xml,image/webp"></div>
             <div class="form-group"><label>Status</label><select name="status" class="form-select"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
             <div class="mock-modal-actions">

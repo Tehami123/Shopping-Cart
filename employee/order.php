@@ -93,7 +93,7 @@ $employeeNav = [
                                     <tr>
                                         <td>
                                             <div class="admin-product-identity">
-                                                <img src="<?= htmlspecialchars($item['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt="">
+                                                <img src="<?= htmlspecialchars($item['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt="">
                                                 <span>
                                                     <strong><?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?></strong>
                                                     <small><?= htmlspecialchars($item['product_code'] . $item['product_number'], ENT_QUOTES, 'UTF-8') ?></small>

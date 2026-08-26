@@ -109,7 +109,7 @@ function current_user(): ?array
     return $user ?: null;
 }
 
-function require_login(string $redirectTo = '/Shopping%20Cart/auth/login.php'): void
+function require_login(string $redirectTo = '/Shopping-Cart/auth/login.php'): void
 {
     session_start_secure();
     if (!is_logged_in()) {
@@ -118,7 +118,7 @@ function require_login(string $redirectTo = '/Shopping%20Cart/auth/login.php'): 
     }
 }
 
-function require_role($roles, string $redirectTo = '/Shopping%20Cart/index.php'): void
+function require_role($roles, string $redirectTo = '/Shopping-Cart/index.php'): void
 {
     require_login($redirectTo);
 
@@ -132,17 +132,17 @@ function require_role($roles, string $redirectTo = '/Shopping%20Cart/index.php')
     }
 }
 
-function require_admin(string $redirectTo = '/Shopping%20Cart/admin/login.php'): void
+function require_admin(string $redirectTo = '/Shopping-Cart/admin/login.php'): void
 {
     require_role('admin', $redirectTo);
 }
 
-function require_employee(string $redirectTo = '/Shopping%20Cart/employee/login.php'): void
+function require_employee(string $redirectTo = '/Shopping-Cart/employee/login.php'): void
 {
     require_role('employee', $redirectTo);
 }
 
-function require_customer(string $redirectTo = '/Shopping%20Cart/auth/login.php'): void
+function require_customer(string $redirectTo = '/Shopping-Cart/auth/login.php'): void
 {
     require_role('customer', $redirectTo);
 }

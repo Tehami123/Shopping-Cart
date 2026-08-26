@@ -142,7 +142,7 @@ function get_product_by_id($productId): ?array
         'stock' => (int) $row['stock'],
         'stock_count' => (int) $row['stock'],
         'stock_label' => normalize_product_stock_label((int) $row['stock']),
-        'image_url' => $row['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg',
+        'image_url' => $row['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg',
         'status' => $row['status'],
     ];
 }
@@ -188,7 +188,7 @@ function get_all_products(?string $category = null, ?string $keyword = null): ar
             'stock' => normalize_product_stock_label((int) $row['stock']),
             'stock_count' => (int) $row['stock'],
             'stock_label' => normalize_product_stock_label((int) $row['stock']),
-            'image' => $row['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg',
+            'image' => $row['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg',
             'badge' => ((int) $row['stock'] > 0 && ((int) $row['product_id'] % 3) === 1) ? 'New' : '',
             'rating' => min(5, max(3, 3 + ((int) $row['product_id'] % 3))),
             'reviews' => 30 + ((int) $row['product_id'] * 11) % 120,

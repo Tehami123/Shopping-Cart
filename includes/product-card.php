@@ -8,7 +8,7 @@ function renderProductCard(array $product): void {
     $price = htmlspecialchars($product['price'] ?? format_currency((float) ($product['price_numeric'] ?? 0)), ENT_QUOTES, 'UTF-8');
     $rating = $product['rating'] ?? 0;
     $stock = $product['stock_label'] ?? ($product['stock'] ?? 'In Stock');
-    $image = htmlspecialchars($product['image'] ?? $product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8');
+    $image = htmlspecialchars($product['image'] ?? $product['image_url'] ?? '/Shopping-Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8');
     $wishlist = $product['wishlist'] ?? '♡';
     $badgeClass = (strtolower($badge) === 'new') ? 'card-badge badge-new' : 'card-badge';
     $newLabel = $badge ? '<span class="' . $badgeClass . '">' . htmlspecialchars($badge, ENT_QUOTES, 'UTF-8') . '</span>' : '';

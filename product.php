@@ -29,7 +29,7 @@ if ($product === null) {
         'price_numeric' => 0,
         'stock' => 'Out of Stock',
         'stock_count' => 0,
-        'image' => '/Shopping%20Cart/assets/images/stationery.svg',
+        'image' => '/Shopping-Cart/assets/images/stationery.svg',
         'rating' => 0,
         'reviews' => 0,
         'badge' => '',
@@ -38,7 +38,7 @@ if ($product === null) {
 } else {
     $product['id'] = $product['full_product_id'];
     $product['category'] = $product['category_name'] ?? 'Uncategorized';
-    $product['image'] = $product['image_url'] ?: '/Shopping%20Cart/assets/images/stationery.svg';
+    $product['image'] = $product['image_url'] ?: '/Shopping-Cart/assets/images/stationery.svg';
     $product['stock'] = normalize_product_stock_label((int) $product['stock_count']);
     $product['badge'] = ((int) $product['stock_count'] > 0 && (int) $product['product_id'] % 3 === 1) ? 'New' : '';
     $product['rating'] = min(5, max(3, 3 + ((int) $product['product_id'] % 3)));

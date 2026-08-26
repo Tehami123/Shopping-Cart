@@ -6,12 +6,12 @@ This project is a portable PHP and MySQL/MariaDB application.
 
 1. **Install XAMPP** (or any AMP stack of your choice).
 2. **Start Apache and MySQL** via the XAMPP Control Panel.
-3. **Copy the project** into the `htdocs` directory (e.g., `C:\xampp\htdocs\Shopping Cart`).
+3. **Copy the project** into the `htdocs` directory (e.g., `C:\xampp\htdocs\Shopping-Cart`).
 4. **Import the Database**:
    - Open phpMyAdmin (usually `http://localhost/phpmyadmin`).
    - The included `database.sql` script will automatically create the `arts_shop` database and all required tables.
    - Import `database.sql` directly.
-5. **Open the project** in your browser via `http://localhost/Shopping%20Cart/` (adjust the URL if your folder name is different).
+5. **Open the project** in your browser via `http://localhost/Shopping-Cart/` (adjust the URL if your folder name is different).
 
 ## Admin and Employee Credentials
 

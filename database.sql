@@ -291,60 +291,60 @@ INSERT INTO products (
 -- Stationery (category_id = 1, code 01)
 ('01', '00001', 1, 'Lavender Dream Journal',
  'Capture your thoughts in an elegantly designed hardcover journal with premium dotted paper.',
- 24.00, 45, '/Shopping%20Cart/assets/images/product-16bfa1fac694b71eebcf7695.jpg', 'active'),
+ 24.00, 45, '/Shopping-Cart/assets/images/product-16bfa1fac694b71eebcf7695.jpg', 'active'),
 ('01', '00002', 1, 'Classic Notebook',
  'A classic everyday notebook for notes, lists, and quick sketches.',
- 16.00, 80, '/Shopping%20Cart/assets/images/product-3789e30f292d96f2a7525aa4.jpg', 'active'),
+ 16.00, 80, '/Shopping-Cart/assets/images/product-3789e30f292d96f2a7525aa4.jpg', 'active'),
 ('01', '00003', 1, 'Premium Writing Set',
  'A curated pen set ideal for students and gift giving.',
- 32.00, 12, '/Shopping%20Cart/assets/images/product-446aba718b97e4b5fad564c0.jpg', 'active'),
+ 32.00, 12, '/Shopping-Cart/assets/images/product-446aba718b97e4b5fad564c0.jpg', 'active'),
 
 -- Gift Articles (category_id = 2, code 02)
 ('02', '00001', 2, 'Ceramic Gift Box',
  'Beautifully crafted ceramic gift box with a secure lid.',
- 28.00, 30, '/Shopping%20Cart/assets/images/product-5a4786c45fd31b8bde895dea.jpg', 'active'),
+ 28.00, 30, '/Shopping-Cart/assets/images/product-5a4786c45fd31b8bde895dea.jpg', 'active'),
 ('02', '00002', 2, 'Decorative Gift Set',
  'A curated selection of decorative items, gift wrapped and ready to give.',
- 45.00, 20, '/Shopping%20Cart/assets/images/product-6fd3e727840a72eff1a97f4b.jpg', 'active'),
+ 45.00, 20, '/Shopping-Cart/assets/images/product-6fd3e727840a72eff1a97f4b.jpg', 'active'),
 
 -- Greeting Cards (category_id = 3, code 03)
 ('03', '00001', 3, 'Botanical Watercolor Card',
  'Send a thoughtful message with a premium watercolor greeting card.',
- 5.50, 100, '/Shopping%20Cart/assets/images/product-b39f59d48d334cb1923065fb.jpg', 'active'),
+ 5.50, 100, '/Shopping-Cart/assets/images/product-b39f59d48d334cb1923065fb.jpg', 'active'),
 ('03', '00002', 3, 'Birthday Greeting Card',
  'Celebrate birthdays in style with gold foil details and premium paper.',
- 4.50, 75, '/Shopping%20Cart/assets/images/product-b8bc10dbff7bbcf6099e381e.jpg', 'active'),
+ 4.50, 75, '/Shopping-Cart/assets/images/product-b8bc10dbff7bbcf6099e381e.jpg', 'active'),
 
 -- Dolls & Toys (category_id = 4, code 04)
 ('04', '00001', 4, 'Soft Plush Doll',
  'A cuddly companion for all ages with embroidered safety details.',
- 22.00, 35, '/Shopping%20Cart/assets/images/product-bdfbdbf67585ba11050a7901.jpg', 'active'),
+ 22.00, 35, '/Shopping-Cart/assets/images/product-bdfbdbf67585ba11050a7901.jpg', 'active'),
 ('04', '00002', 4, 'Mini Teddy Bear',
  'A pocket-sized teddy bear perfect for small gifts and collections.',
- 14.00, 0, '/Shopping%20Cart/assets/images/product-cc7084dcd190e075f535dba3.jpg', 'active'),
+ 14.00, 0, '/Shopping-Cart/assets/images/product-cc7084dcd190e075f535dba3.jpg', 'active'),
 
 -- Files & Folders (category_id = 5, code 05)
 ('05', '00001', 5, 'Document File Set',
  'Durable document files for home, school, and office organization.',
- 12.00, 60, '/Shopping%20Cart/assets/images/product-da20d0cded54ffb92e2ed33b.jpg', 'active'),
+ 12.00, 60, '/Shopping-Cart/assets/images/product-da20d0cded54ffb92e2ed33b.jpg', 'active'),
 ('05', '00002', 5, 'Premium Office File',
  'Premium office file with reinforced edges and clear label slot.',
- 18.50, 40, '/Shopping%20Cart/assets/images/product-ee53c1fce06d914239ba0277.jpg', 'active'),
+ 18.50, 40, '/Shopping-Cart/assets/images/product-ee53c1fce06d914239ba0277.jpg', 'active'),
 
 -- Handbags (category_id = 6, code 06)
 ('06', '00001', 6, 'Casual Handbag',
  'Everyday handbag with practical compartments and a comfortable strap.',
- 48.00, 18, '/Shopping%20Cart/assets/images/product-f25ca1d73637faaa98361835.jpg', 'active'),
+ 48.00, 18, '/Shopping-Cart/assets/images/product-f25ca1d73637faaa98361835.jpg', 'active'),
 
 -- Wallets (category_id = 7, code 07)
 ('07', '00001', 7, 'Classic Leather Wallet',
  'Compact leather wallet with card slots and a secure coin pocket.',
- 26.00, 25, '/Shopping%20Cart/assets/images/product-f649bba8e3d2f8f86ed8ac41.jpg', 'active'),
+ 26.00, 25, '/Shopping-Cart/assets/images/product-f649bba8e3d2f8f86ed8ac41.jpg', 'active'),
 
 -- Beauty (category_id = 8, code 08)
 ('08', '00001', 8, 'Everyday Lip Care Set',
  'Simple lip care essentials for daily use and gifting.',
- 15.00, 50, '/Shopping%20Cart/assets/images/product-f956f9860aa7b096c1b3cdf6.jpg', 'active');
+ 15.00, 50, '/Shopping-Cart/assets/images/product-f956f9860aa7b096c1b3cdf6.jpg', 'active');
 
 -- ------------------------------------------------------------
 -- SEED DATA — Admin and Employee Accounts
@@ -352,8 +352,8 @@ INSERT INTO products (
 
 -- NOTE: Replace the placeholders below with actual BCRYPT hashes from your live database.
 INSERT INTO users (user_id, email, password_hash, role, status) VALUES
-(1, 'admin@artsshop.local', '$2y$10$dvZWMG42XExdNlQBJzaN4O9VCQJTYH9ciAbsejnarzQGGbd8I8gGO', 'admin', 'active'),
-(2, 'employee@artsshop.local', '$2y$10$dvZWMG42XExdNlQBJzaN4O9VCQJTYH9ciAbsejnarzQGGbd8I8gGO', 'employee', 'active');
+(1, 'admin@artsshop.local', '$2y$10$3Et/8VKQSDrK44w.3FekqeEDXOeaimEMQ9TIsqN6bKvVWbq4zBUJq', 'admin', 'active'),
+(2, 'employee@artsshop.local', '$2y$10$yXeChyWVOhG1AlzI164q.ux5y55DRWiASfkwHZa756ePAYzbxLrP6', 'employee', 'active');
 
 INSERT INTO employees (user_id, first_name, last_name, hire_date) VALUES
 (2, 'Shop', 'Employee', '2023-01-01');

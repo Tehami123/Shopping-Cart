@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
@@ -51,7 +51,7 @@ $products = $db->query('SELECT p.*, c.name AS category_name FROM products p INNE
                         <tbody>
                             <?php foreach ($products as $product): ?>
                                 <tr>
-                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?? '/Shopping%20Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
+                                    <td><div class="admin-product-identity"><img src="<?= htmlspecialchars($product['image_url'] ?? '/Shopping-Cart/assets/images/stationery.svg', ENT_QUOTES, 'UTF-8') ?>" alt=""><span><strong><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($product['full_product_id'], ENT_QUOTES, 'UTF-8') ?></small></span></div></td>
                                     <td><strong class="admin-stock-number"><?= (int) $product['stock'] ?></strong><span class="admin-table-muted"> units</span></td>
                                     <td><span class="status-badge <?= get_status_badge_class(normalize_product_stock_label((int) $product['stock']), 'order') ?>"><?= htmlspecialchars(normalize_product_stock_label((int) $product['stock']), ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td>
