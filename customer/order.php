@@ -49,7 +49,7 @@ $badgeClassForPayment = [
 
 $paymentBadgeClass = $badgeClassForPayment[$order['payment_status']] ?? 'ca-badge--neutral';
 $statusBadgeClass = $badgeClassForStatus[$order['status']] ?? 'ca-badge--neutral';
-$canCancel = in_array($order['status'], ['pending', 'confirmed'], true);
+$canCancel = in_array($order['status'], ['pending', 'confirmed'], true) && $order['payment_status'] !== 'cleared';
 
 $returnMessage = '';
 $returnAlertType = '';
@@ -59,6 +59,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
     $reason = trim((string) ($_POST['reason'] ?? ''));
     $description = trim((string) ($_POST['description'] ?? ''));
 
+    $photoPath = null;
+    $uploadError = '';
+
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['photo'];
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $uploadError = 'Error uploading photo.';
+        } elseif ($file['size'] > $maxSize) {
+            $uploadError = 'Photo exceeds 5MB size limit.';
+        } elseif (!in_array($file['type'], $allowedMimes) || !in_array($ext, $allowedExts)) {
+            $uploadError = 'Invalid photo format. Only JPG, PNG, and WEBP are allowed.';
+        } else {
+            $uploadDir = dirname(__DIR__) . '/assets/uploads/returns/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $filename = uniqid('return_') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $destination = $uploadDir . $filename;
+
+            if (move_uploaded_file($file['tmp_name'], $destination)) {
+                $photoPath = '/Shopping-Cart/assets/uploads/returns/' . $filename;
+            } else {
+                $uploadError = 'Failed to save uploaded photo.';
+            }
+        }
+    }
+
     $itemBelongsToOrder = false;
     foreach ($items as $lineItem) {
         if ((int) $lineItem['order_item_id'] === $orderItemId) {
@@ -67,11 +100,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
         }
     }
 
-    if ($orderItemId > 0 && $itemBelongsToOrder && $returnTypeValue !== '' && $reason !== '') {
+    if ($orderItemId > 0 && $itemBelongsToOrder && $returnTypeValue !== '' && $reason !== '' && $uploadError === '') {
         if (get_return_request_for_order_item($orderItemId, $customerId)) {
             $returnMessage = 'A return has already been requested for this item.';
             $returnAlertType = 'error';
-        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description)) {
+        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description, $photoPath)) {
             $returnMessage = 'Return request submitted successfully.';
             $returnAlertType = 'success';
         } else {
@@ -79,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
             $returnAlertType = 'error';
         }
     } else {
-        $returnMessage = 'Please provide all required information.';
+        $returnMessage = $uploadError ?: 'Please provide all required information.';
         $returnAlertType = 'error';
     }
 }
@@ -553,7 +586,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
         <h3>Request Return or Replacement</h3>
         <p>Product: <strong id="modalProductName"></strong></p>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="submit_return" value="1">
             <input type="hidden" id="orderItemId" name="order_item_id" value="0">
             <div class="form-group" style="margin-top: 20px;">
@@ -572,6 +605,11 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <div class="form-group">
                 <label for="returnComments">Additional Comments</label>
                 <textarea id="returnComments" name="description" class="form-textarea" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="returnPhoto">Photo (Optional, Max 5MB, JPG/PNG/WEBP)</label>
+                <input type="file" id="returnPhoto" name="photo" class="form-input" accept=".jpg,.jpeg,.png,.webp">
             </div>
 
             <div class="mock-modal-actions">
@@ -594,6 +632,7 @@ function closeReturnModal() {
     document.getElementById('returnType').value = 'return';
     document.getElementById('returnReason').value = '';
     document.getElementById('returnComments').value = '';
+    document.getElementById('returnPhoto').value = '';
 }
 </script>
 

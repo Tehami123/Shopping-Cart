@@ -24,11 +24,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
     $reason = trim((string) ($_POST['reason'] ?? ''));
     $description = trim((string) ($_POST['description'] ?? ''));
 
-    if ($orderItemId > 0 && $returnTypeValue !== '' && $reason !== '') {
+    $photoPath = null;
+    $uploadError = '';
+
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['photo'];
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $uploadError = 'Error uploading photo.';
+        } elseif ($file['size'] > $maxSize) {
+            $uploadError = 'Photo exceeds 5MB size limit.';
+        } elseif (!in_array($file['type'], $allowedMimes) || !in_array($ext, $allowedExts)) {
+            $uploadError = 'Invalid photo format. Only JPG, PNG, and WEBP are allowed.';
+        } else {
+            $uploadDir = dirname(__DIR__) . '/assets/uploads/returns/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $filename = uniqid('return_') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $destination = $uploadDir . $filename;
+
+            if (move_uploaded_file($file['tmp_name'], $destination)) {
+                $photoPath = '/Shopping-Cart/assets/uploads/returns/' . $filename;
+            } else {
+                $uploadError = 'Failed to save uploaded photo.';
+            }
+        }
+    }
+
+    if ($orderItemId > 0 && $returnTypeValue !== '' && $reason !== '' && $uploadError === '') {
         if (get_return_request_for_order_item($orderItemId, $customerId)) {
             $returnMessage = 'A return has already been requested for this item.';
             $returnType = 'error';
-        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description)) {
+        } elseif (submit_customer_return_request($orderItemId, $customerId, $returnTypeValue, $reason, $description, $photoPath)) {
             $returnMessage = 'Return request submitted successfully.';
             $returnType = 'success';
         } else {
@@ -36,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_return'])) {
             $returnType = 'error';
         }
     } else {
-        $returnMessage = 'Please provide all required information.';
+        $returnMessage = $uploadError ?: 'Please provide all required information.';
         $returnType = 'error';
     }
 }
@@ -140,6 +173,14 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                     <div class="ca-return-name"><?= htmlspecialchars($request['product_name'], ENT_QUOTES, 'UTF-8') ?></div>
                                     <div class="ca-return-meta">Order #<?= htmlspecialchars($request['order_number'], ENT_QUOTES, 'UTF-8') ?></div>
                                     <div class="ca-return-meta"><?= htmlspecialchars(ucfirst((string) $request['return_type']), ENT_QUOTES, 'UTF-8') ?> · <?= date('d M Y', strtotime($request['request_date'])) ?></div>
+                                    <?php if (!empty($request['photo_path'])): ?>
+                                        <div class="ca-return-meta" style="margin-top: 5px;">
+                                            <a href="<?= htmlspecialchars($request['photo_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" style="color: var(--primary-color); text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                                View Photo
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="ca-return-actions">
                                     <span class="ca-badge <?= $reqBadgeClass ?>"><?= htmlspecialchars(format_return_status_label((string) $request['status']), ENT_QUOTES, 'UTF-8') ?></span>
@@ -160,7 +201,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
         <h3>Request Return or Replacement</h3>
         <p>Product: <strong id="modalProductName"></strong></p>
 
-        <form method="POST" action="returns.php">
+        <form method="POST" action="returns.php" enctype="multipart/form-data">
             <input type="hidden" name="submit_return" value="1">
             <input type="hidden" id="orderItemId" name="order_item_id" value="0">
             <div class="form-group" style="margin-top: 20px;">
@@ -179,6 +220,11 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             <div class="form-group">
                 <label for="returnComments">Additional Comments</label>
                 <textarea id="returnComments" name="description" class="form-textarea" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="returnPhoto">Photo (Optional, Max 5MB, JPG/PNG/WEBP)</label>
+                <input type="file" id="returnPhoto" name="photo" class="form-input" accept=".jpg,.jpeg,.png,.webp">
             </div>
 
             <div class="mock-modal-actions">
@@ -201,6 +247,7 @@ function closeReturnModal() {
     document.getElementById('returnType').value = 'return';
     document.getElementById('returnReason').value = '';
     document.getElementById('returnComments').value = '';
+    document.getElementById('returnPhoto').value = '';
 }
 </script>
 

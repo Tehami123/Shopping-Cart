@@ -112,7 +112,7 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                             <?php
                             $payment = str_replace('_', ' ', $order['payment_status']);
                             $status = str_replace('_', ' ', $order['status']);
-                            $canCancel = in_array($order['status'], ['pending', 'confirmed'], true);
+                            $canCancel = in_array($order['status'], ['pending', 'confirmed'], true) && $order['payment_status'] !== 'cleared';
                             $paymentBadgeClass = $badgeClassForPayment[$order['payment_status']] ?? 'ca-badge--neutral';
                             $statusBadgeClass = $badgeClassForStatus[$order['status']] ?? 'ca-badge--neutral';
                             ?>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_admin();
@@ -54,7 +54,14 @@ $returns = get_all_returns_for_admin();
                                     <td><?= htmlspecialchars($return['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($return['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= ucfirst(htmlspecialchars($return['return_type'], ENT_QUOTES, 'UTF-8')) ?></td>
-                                    <td><?= htmlspecialchars($return['reason'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td>
+                                        <?= htmlspecialchars($return['reason'], ENT_QUOTES, 'UTF-8') ?>
+                                        <?php if (!empty($return['photo_path'])): ?>
+                                            <div style="margin-top: 4px;">
+                                                <a href="<?= htmlspecialchars($return['photo_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" style="color: var(--primary-color); font-size: 0.8rem; text-decoration: none;">🖼️ View Photo</a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= date('d M Y', strtotime($return['request_date'])) ?></td>
                                     <td><span class="status-badge <?= get_status_badge_class($return['status'], 'return') ?>"><?= htmlspecialchars(format_return_status_label((string) $return['status']), ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td class="admin-actions-cell">

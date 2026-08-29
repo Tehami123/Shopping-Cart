@@ -206,6 +206,7 @@ CREATE TABLE returns (
     return_type   ENUM('return', 'replacement') NOT NULL,
     reason        VARCHAR(255) NOT NULL,
     description   TEXT NULL,
+    photo_path    VARCHAR(255) NULL,
     request_date  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status        ENUM('requested', 'approved', 'rejected', 'completed') NOT NULL DEFAULT 'requested',
     approved_by   INT UNSIGNED NULL,
@@ -353,7 +354,7 @@ INSERT INTO products (
 -- NOTE: Replace the placeholders below with actual BCRYPT hashes from your live database.
 INSERT INTO users (user_id, email, password_hash, role, status) VALUES
 (1, 'admin@artsshop.local', '$2y$10$3Et/8VKQSDrK44w.3FekqeEDXOeaimEMQ9TIsqN6bKvVWbq4zBUJq', 'admin', 'active'),
-(2, 'employee@artsshop.local', '$2y$10$yXeChyWVOhG1AlzI164q.ux5y55DRWiASfkwHZa756ePAYzbxLrP6', 'employee', 'active');
+(2, 'employee@artsshop.local', '$2y$10$nzykdyhMESDSp82DfGi70u2JuLxF5drLn7V.wAMx2/cwuaW.BfUtm', 'employee', 'active');
 
 INSERT INTO employees (user_id, first_name, last_name, hire_date) VALUES
 (2, 'Shop', 'Employee', '2023-01-01');

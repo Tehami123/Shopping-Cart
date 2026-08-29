@@ -1,1 +1,8 @@
 AdminPassword123!
+
+# Local development credentials
+ADMIN_EMAIL=admin@artsshop.local
+ADMIN_PASSWORD=AdminPassword123!
+
+EMPLOYEE_EMAIL=employee@artsshop.local
+EMPLOYEE_PASSWORD=AdminPassword123!

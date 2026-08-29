@@ -708,7 +708,8 @@ function submit_customer_return_request(
     int $customerId,
     string $returnType,
     string $reason,
-    string $description = ''
+    string $description = '',
+    ?string $photoPath = null
 ): bool {
     $returnType = in_array($returnType, ['return', 'replacement'], true) ? $returnType : '';
     $reason = trim($reason);
@@ -741,8 +742,8 @@ function submit_customer_return_request(
 
     try {
         $insert = $db->prepare(
-            'INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, status, request_date)
-            VALUES (:order_id, :order_item_id, :customer_id, :return_type, :reason, :description, :status, CURRENT_TIMESTAMP)'
+            'INSERT INTO returns (order_id, order_item_id, customer_id, return_type, reason, description, photo_path, status, request_date)
+            VALUES (:order_id, :order_item_id, :customer_id, :return_type, :reason, :description, :photo_path, :status, CURRENT_TIMESTAMP)'
         );
         return $insert->execute([
             ':order_id' => (int) $row['order_id'],
@@ -751,6 +752,7 @@ function submit_customer_return_request(
             ':return_type' => $returnType,
             ':reason' => substr($reason, 0, 255),
             ':description' => $description !== '' ? $description : null,
+            ':photo_path' => $photoPath,
             ':status' => 'requested',
         ]);
     } catch (Exception $e) {
@@ -892,7 +894,7 @@ function can_cancel_order(int $orderId, int $customerId): bool
 {
     $db = get_db_connection();
     $stmt = $db->prepare(
-        'SELECT status FROM orders WHERE order_id = :order_id AND customer_id = :customer_id LIMIT 1'
+        'SELECT status, payment_status FROM orders WHERE order_id = :order_id AND customer_id = :customer_id LIMIT 1'
     );
     $stmt->execute([':order_id' => $orderId, ':customer_id' => $customerId]);
     $order = $stmt->fetch();
@@ -901,9 +903,13 @@ function can_cancel_order(int $orderId, int $customerId): bool
         return false;
     }
     
-    // Customers may cancel pending, confirmed, or processing orders they own.
-    // Dispatched, delivered, and cancelled orders cannot be cancelled.
-    return in_array($order['status'], ['pending', 'confirmed', 'processing'], true);
+    if ($order['payment_status'] === 'cleared') {
+        return false;
+    }
+    
+    // Customers may only cancel pending or confirmed orders.
+    // Processing, dispatched, delivered, and cancelled orders cannot be cancelled.
+    return in_array($order['status'], ['pending', 'confirmed'], true);
 }
 
 function cancel_order(int $orderId, int $customerId): bool

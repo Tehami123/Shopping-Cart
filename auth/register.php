@@ -76,7 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             $db->commit();
-            $registered = true;
+            
+            // Automatically log in the user and redirect to dashboard
+            login_user($email, $password);
+            redirect_to($basePath . '/customer/index.php');
+            
         } catch (Exception $e) {
             $db->rollBack();
             $errors[] = 'Registration failed. Please try again.';
