@@ -23,11 +23,23 @@ $deliveryFilter = strtolower(trim((string) ($_GET['delivery'] ?? 'all')));
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_order_status'])) {
     $orderId = (int) ($_POST['order_id'] ?? 0);
     $status = $_POST['status'] ?? 'pending';
-    if ($orderId > 0 && in_array($status, ['pending', 'confirmed', 'dispatched', 'delivered', 'cancelled'], true)) {
-        $db->prepare('UPDATE orders SET status = :status WHERE order_id = :order_id')->execute([
-            ':status' => $status,
-            ':order_id' => $orderId,
-        ]);
+    if ($orderId > 0 && in_array($status, ['pending', 'confirmed', 'processing', 'dispatched', 'delivered', 'cancelled'], true)) {
+        if ($status === 'delivered') {
+            $db->prepare('UPDATE orders SET status = :status, delivery_date = COALESCE(delivery_date, CURDATE()) WHERE order_id = :order_id')->execute([
+                ':status' => $status,
+                ':order_id' => $orderId,
+            ]);
+        } elseif ($status === 'dispatched') {
+            $db->prepare('UPDATE orders SET status = :status, dispatch_date = COALESCE(dispatch_date, NOW()) WHERE order_id = :order_id')->execute([
+                ':status' => $status,
+                ':order_id' => $orderId,
+            ]);
+        } else {
+            $db->prepare('UPDATE orders SET status = :status WHERE order_id = :order_id')->execute([
+                ':status' => $status,
+                ':order_id' => $orderId,
+            ]);
+        }
     }
 }
 

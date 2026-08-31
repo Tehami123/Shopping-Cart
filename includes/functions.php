@@ -560,7 +560,7 @@ function get_all_returns_for_admin(): array
 {
     $db = get_db_connection();
     $sql = 'SELECT r.*, o.order_number, CONCAT(c.first_name, " ", c.last_name) AS customer_name,
-            p.name AS product_name, oi.quantity, oi.unit_price
+            p.name AS product_name, p.image_url AS product_image, oi.quantity, oi.unit_price
         FROM returns r
         INNER JOIN orders o ON o.order_id = r.order_id
         INNER JOIN customers c ON c.customer_id = r.customer_id
@@ -971,7 +971,7 @@ function get_order_by_id_for_customer(int $orderId, int $customerId): ?array
     
     // Get line items
     $stmt = $db->prepare(
-        'SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, p.name AS product_name, p.full_product_id FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_id = :order_id'
+        'SELECT oi.order_item_id, oi.quantity, oi.unit_price, oi.subtotal, p.name AS product_name, p.full_product_id, p.image_url FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id WHERE oi.order_id = :order_id'
     );
     $stmt->execute([':order_id' => $orderId]);
     $items = $stmt->fetchAll();

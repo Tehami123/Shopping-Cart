@@ -52,7 +52,12 @@ $returns = get_all_returns_for_admin();
                                     <td>RT-<?= (int) $return['return_id'] ?></td>
                                     <td><?= htmlspecialchars($return['order_number'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($return['customer_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($return['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <img src="<?= htmlspecialchars($return['product_image'] ?? ($basePath . '/assets/images/stationery.svg'), ENT_QUOTES, 'UTF-8') ?>" alt="Product" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                                            <span><?= htmlspecialchars($return['product_name'], ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                    </td>
                                     <td><?= ucfirst(htmlspecialchars($return['return_type'], ENT_QUOTES, 'UTF-8')) ?></td>
                                     <td>
                                         <?= htmlspecialchars($return['reason'], ENT_QUOTES, 'UTF-8') ?>

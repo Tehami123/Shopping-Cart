@@ -167,6 +167,31 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
         margin-bottom: 1.5rem;
     }
 
+    .ca-btn-return {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--primary, #6542a5);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        box-shadow: 0 2px 4px rgba(101, 66, 165, 0.2);
+        line-height: 1.2;
+        text-decoration: none;
+    }
+
+    .ca-btn-return:hover {
+        background-color: var(--primary-dark, #432873);
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(101, 66, 165, 0.25);
+    }
+
     .ca-order-header-actions {
         display: flex;
         gap: 0.75rem;
@@ -547,7 +572,13 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
                                                 <?= htmlspecialchars(format_return_status_label((string) $itemReturn['status']), ENT_QUOTES, 'UTF-8') ?>
                                             </span>
                                         <?php elseif ($orderReturnEligible): ?>
-                                            <button type="button" class="return-btn" onclick="openReturnModal(<?= htmlspecialchars(json_encode($item['product_name']), ENT_QUOTES, 'UTF-8') ?>, <?= $itemId ?>)">Return / Replace</button>
+                                            <button type="button" class="ca-btn-return" onclick='openReturnModal(
+                                                <?= htmlspecialchars(json_encode($item['product_name']), ENT_QUOTES, 'UTF-8') ?>,
+                                                <?= $itemId ?>,
+                                                <?= htmlspecialchars(json_encode($item['full_product_id']), ENT_QUOTES, 'UTF-8') ?>,
+                                                <?= (int)$item['quantity'] ?>,
+                                                <?= htmlspecialchars(json_encode($item['image_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                                            )'>Return / Replace</button>
                                         <?php else: ?>
                                             <span class="ca-product-id">—</span>
                                         <?php endif; ?>
@@ -581,15 +612,39 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
     </div>
 </main>
 
-<div id="returnModal" class="mock-modal" style="display: none;">
-    <div class="mock-modal-content">
-        <h3>Request Return or Replacement</h3>
-        <p>Product: <strong id="modalProductName"></strong></p>
+<div id="returnModal" class="mock-modal" style="display: none; z-index: 9999;">
+    <div class="mock-modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 1rem;">Request Return or Replacement</h3>
 
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="submit_return" value="1">
             <input type="hidden" id="orderItemId" name="order_item_id" value="0">
-            <div class="form-group" style="margin-top: 20px;">
+
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-color);">Customer Information</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                    <div><strong>Name:</strong> <?= htmlspecialchars($profile['first_name'] . ' ' . $profile['last_name'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <div><strong>Email:</strong> <?= htmlspecialchars($profile['email'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <div><strong>Phone:</strong> <?= htmlspecialchars($profile['phone'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <div style="grid-column: 1 / -1;"><strong>Delivery Address:</strong> <?= htmlspecialchars($profile['address'] . ', ' . $profile['city'] . ' ' . $profile['postal_code'] . ', ' . $profile['country'], ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-color);">Order & Product Details</h4>
+                <div style="display: flex; gap: 1rem; font-size: 0.85rem;">
+                    <img id="modalProductImage" src="" alt="Product" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div style="grid-column: 1 / -1;"><strong>Product:</strong> <span id="modalProductName"></span></div>
+                        <div><strong>Order #:</strong> <?= htmlspecialchars($order['order_number'], ENT_QUOTES, 'UTF-8') ?></div>
+                        <div><strong>Product ID:</strong> <span id="modalProductId"></span></div>
+                        <div><strong>Quantity:</strong> <span id="modalProductQty"></span></div>
+                        <div><strong>Order Date:</strong> <?= date('d M Y', strtotime($order['order_date'])) ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="returnType">Request Type</label>
                 <select id="returnType" name="return_type" class="form-select" required>
                     <option value="return">Return</option>
@@ -598,21 +653,17 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
             </div>
 
             <div class="form-group">
-                <label for="returnReason">Reason</label>
-                <input type="text" id="returnReason" name="reason" class="form-input" placeholder="e.g., Defective, wrong item, etc." required>
+                <label for="returnReason">Message / Reason</label>
+                <textarea id="returnReason" name="reason" class="form-textarea" rows="4" placeholder="Please explain the problem..." required maxlength="255"></textarea>
             </div>
 
             <div class="form-group">
-                <label for="returnComments">Additional Comments</label>
-                <textarea id="returnComments" name="description" class="form-textarea" rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="returnPhoto">Photo (Optional, Max 5MB, JPG/PNG/WEBP)</label>
+                <label for="returnPhoto">Photo (Required for damages/defects)</label>
                 <input type="file" id="returnPhoto" name="photo" class="form-input" accept=".jpg,.jpeg,.png,.webp">
+                <small style="color: var(--text-light); display: block; margin-top: 0.25rem;">Max 5MB. JPG, PNG, or WEBP formats only.</small>
             </div>
 
-            <div class="mock-modal-actions">
+            <div class="mock-modal-actions" style="margin-top: 1.5rem;">
                 <button type="submit" class="modal-submit-btn">Submit Request</button>
                 <button type="button" class="modal-cancel-btn" onclick="closeReturnModal()">Cancel</button>
             </div>
@@ -621,9 +672,13 @@ require_once dirname(__DIR__) . '/includes/navbar.php';
 </div>
 
 <script>
-function openReturnModal(productName, orderItemId) {
+function openReturnModal(productName, orderItemId, productId, quantity, imageUrl) {
     document.getElementById('modalProductName').textContent = productName;
     document.getElementById('orderItemId').value = orderItemId;
+    document.getElementById('modalProductId').textContent = productId;
+    document.getElementById('modalProductQty').textContent = quantity;
+    document.getElementById('modalProductImage').src = imageUrl || '<?= $basePath ?>/assets/images/stationery.svg';
+    
     document.getElementById('returnModal').style.display = 'flex';
 }
 
@@ -631,7 +686,6 @@ function closeReturnModal() {
     document.getElementById('returnModal').style.display = 'none';
     document.getElementById('returnType').value = 'return';
     document.getElementById('returnReason').value = '';
-    document.getElementById('returnComments').value = '';
     document.getElementById('returnPhoto').value = '';
 }
 </script>
